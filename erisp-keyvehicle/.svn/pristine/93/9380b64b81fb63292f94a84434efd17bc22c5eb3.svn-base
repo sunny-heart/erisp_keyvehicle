@@ -1,0 +1,26 @@
+package com.gkhb.keyvehicle.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.gkhb.keyvehicle.mapper.VehicleOnlineStateMapper;
+
+@Service
+public class VehicleOnlineStateServiceImpl implements VehicleOnlineStateService {
+	@Autowired
+	private VehicleOnlineStateMapper vehicleOnlineStateMapper;
+
+	@Override
+	@Transactional
+	public void addVehicleOnlineState() {
+		vehicleOnlineStateMapper.addVehicleOnlineState();
+	}
+
+	@Override
+	@Transactional
+	public boolean deleteVehicleOnlineState() {
+		return vehicleOnlineStateMapper.deleteVehicleOnlineState();
+	}
+
+}

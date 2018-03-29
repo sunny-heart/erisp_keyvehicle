@@ -1,0 +1,38 @@
+package com.gkhb.keyvehicle.service;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.gkhb.keyvehicle.service.etl.AccessEtlService;
+import com.gkhb.keyvehicle.service.etl.bus.BusAccessEtlService;
+
+/**
+ * 初始化系统业务进程
+ * 
+ * @author 张顺江
+ * @createTime 2017年9月7日 上午9:29:22
+ */
+@Service
+public final class InitService {
+
+    @Autowired
+    private AccessEtlService accessEtlService;// 数据清洗服务类
+    
+    @Autowired
+    private BusAccessEtlService busAccessEtlService;
+
+    /**
+     * 系统开启时 运行任务
+     */
+    @PostConstruct
+    public void initServices() {
+
+        // 启动服务
+        accessEtlService.startEtlServer();
+        
+        //busAccessEtlService.startEtlServer();
+    }
+
+}

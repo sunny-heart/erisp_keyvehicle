@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.slave.mapper.DevCameraEventMapper">
+
+	<!-- 查询所有 -->
+	<select id="queryAll" resultType='com.gkhb.keyvehicle.model.DevCameraEvent'>
+		select m.* from DEV_CAMERA_EVENT m
+		WHERE m.DEVICE_ID IS NOT NULL
+	</select>
+	
+	<!-- 根据设备编号查询 -->
+	<select id="queryDevCameraById" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.DevCameraEvent'>
+		SELECT * FROM DEV_CAMERA_EVENT WHERE DEVICE_ID = #{deviceId,jdbcType=VARCHAR}
+	</select>
+
+</mapper>

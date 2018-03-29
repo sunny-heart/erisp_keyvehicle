@@ -1,0 +1,154 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown" style="padding-top: 0; padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="warningDisposalController">
+		<div class="title_text">实时处置</div>
+		<div class="title_line"></div>
+		<div class="row-fluid">
+			<div class="col-md-4 font_black_famil" style="border: 1px solid #ccc; margin-bottom: 5px; height: 775px;">
+				<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">车辆预警记录</div>
+				<div class="title_line1"></div>
+				<table class="table table-hover table-responsive pams_table font_black_famil">
+					<thead>
+						<tr>
+							<th class="center table-th">车牌号码</th>
+							<th class="center table-th">车辆类型</th>
+							<th class="center table-th">预警类型</th>
+							<th class="center table-th">预警时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="data in warningDisposalViewList" ng-click="warningOnClick(data)">
+							<td class="center table-td">{{data.vehicleInfo.plateNumber}}</td>
+							<td class="center table-td">{{data.vehicleInfo.vehicleType}}</td>
+							<td class="center table-td">{{data.earlyWarningInfo.warningType | reverse}}</td>
+							<td class="center table-td">{{data.earlyWarningInfo.warningStartTime.time | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+						</tr>
+					</tbody>
+				</table>
+				
+				<div class="erisp-table-page text-center">
+					<!-- <div class="text-center">
+						<pagination total-items="totalItems" ng-model="currentPage" max-size="9" items-per-page="pageSize" class="pagination-md" 
+						ng-change="pageChanged()" boundary-links="true" rotate="false" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" num-pages="numPages">
+						 </pagination>
+					</div> -->
+					<div class="center" ng-show="totalItems>0">查询结果：共计{{totalItems}}条，当前页{{currentPage}}/共{{pages}}页</div>
+					<div style="text-align:right;margin-top: 15px;margin-bottom: 12px;">
+		                <input id="first" class="" type="button" value="首页" style="height:28px;" ng-click="query()">
+		               <input id="previous" class="" type="button" value="上一页" style="height:28px;" ng-click="previousPage()">
+		               <input id="next" class="" type="button" value="下一页" style="height:28px;" ng-click="nextPage()">
+		               <input id="last" class="" type="button" value="末页" style="height:28px;" ng-click="lastPage()">
+		                <input id="pageNumber" class="" type="text"  style="height:28px;width: 70px;" ng-model="anyPage">
+		               <input id="go" class="" type="button" value="GO" style="height:28px;" ng-click="go()">
+		       </div>
+				</div>	
+				
+			</div>
+		</div>
+		<div class="col-md-8" style="padding-right:0px;height:775px;overflow:scroll;">
+			<div class="row-fluid" style="border: 1px solid #ccc; margin-bottom: 15px; width: 100%; height: 260px">
+
+				<div class="col-md-3 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 11px; margin-top: 10px;">车辆基本信息</div>
+					<div class="title_line1" style="width:200%;"></div>
+					<div class="form-group">车辆牌号：{{vehicleInfo.plateNumber}}</div>
+					<div class="form-group">车辆种类：{{vehicleInfo.vehicleKind}}</div>
+					<div class="form-group">车架号码：{{vehicleInfo.vehicleFrameNumber}}</div>
+					<div class="form-group">车辆类别：{{vehicleInfo.plateType}}</div>
+					<div class="form-group">监管部门：{{vehicleInfo.competentAuthority}}</div>
+				</div>
+				<div class="col-md-3 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+					<div class="form-group" style="margin-top: 29px;">所属公司：{{vehicleInfo.ascriptionCompany}}</div>
+					<div class="form-group">车辆类型：{{vehicleInfo.vehicleType}}</div>
+					<div class="form-group">注册登记日期：{{vehicleInfo.registrationDate.time | date:'yyyy-MM-dd'}}</div>
+					<div class="form-group">年审状态：{{vehicleInfo.motTestState}}</div>
+					<!-- <div class="form-group"><input type="button" value="查看车辆图片" ng-click="showVehiclePicture(vehicleInfo)"></div> -->
+				</div>
+				<div class="col-md-2 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 11px; margin-top: 10px;">违法事故信息</div>
+					<div class="title_line1" style="width:100%;"></div>
+					<div class="form-group">当前年度违法次数：{{illegalTotal}}</div>
+					<div class="form-group">当前年度事故次数：{{accidentTotal}}</div>
+				</div>
+				<!-- <div class="col-md-4 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 11px; margin-top: 10px;">事故信息</div>
+					<div class="title_line1" style="width:100%;"></div>
+					<div class="form-group">当前年度事故次数：{{accidentTotal}}</div>
+				</div> -->
+				<div class="col-md-4 font_black_famil">
+					<img alt="" src="{{vehicleInfo.platePictureUrl | defaultPic}}" ng-click="showVehiclePicture(vehicleInfo)" style="width:400px;height:250px;margin-top:3px;">
+				</div>
+			</div>
+			<div class="row-fluid" style="border: 1px solid #ccc; margin-bottom: 15px; width: 100%; height: 240px">
+				<div class="col-md-12 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">车辆预警信息</div>
+					<div class="title_line1" style="width:100%;"></div>
+					<div class="form-group">预警时间：{{earlyWarningInfo.warningStartTime.time | date:'yyyy-MM-dd HH:mm:ss'}}</div>
+					<div class="form-group">预警地点：{{earlyWarningInfo.warningStartLocation}}</div>
+					<div class="form-group">预警事件：{{earlyWarningInfo.warningTypeExplain}}</div>
+					<div class="form-group">预警内容：{{vehicleInfo.plateNumber | noteOfPlateNumber}}{{earlyWarningInfo.warningStartLocation | noteOfPlace}}{{earlyWarningInfo.warningExplain}}</div>
+				</div>
+			</div>
+			<div class="row-fluid" style="border: 1px solid #ccc; margin-bottom: 11px; width: 100%; height: 260px">
+				<div class="col-md-12 font_black_famil">
+					<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">预警处置</div>
+					<div class="title_line1"></div>
+					<div class="form-group" style="margin-bottom: 50px;">
+						<div class="col-md-2">
+							<div class="form-group font_black_famil">处置方式：</div>
+						</div>
+						<div class="col-md-10">
+							<select class="js-data-example-ajax font_black_famil" ng-model="disposalMethods" id="disposalMethods" style="width: 30%;">
+								<option value="忽略" >忽略</option>
+								<option value="处置" selected="selected">处置</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group" style="margin-bottom: 50px;">
+						<div class="col-md-2">
+							<div class="form-group font_black_famil">原因：</div>
+						</div>
+						<div class="col-md-10">
+							<div class="checkbox">
+							    <label class="font_black_famil">
+							      <input id="wrong" type="checkbox" value="误报">误报
+							    </label>
+							    <label class="font_black_famil">
+							      <input id="repeat" type="checkbox" value="重复预警">重复预警
+							    </label>
+							</div>
+						</div>
+					</div>
+					<div class="form-group font_black_famil" style="margin-bottom: 50px;">
+						<div class="col-md-2">
+							<div class="form-group">处置细则：</div>
+						</div>
+						<div class="col-md-10">
+							<textarea class="form-control" id="rules" rows="2">{{disposalRules}}</textarea>
+						</div>
+					</div>
+					<div class="form-group font_black_famil" style="margin-bottom: 50px; margin-top: 115px;">
+						<!-- <div class="col-md-2" style="margin-top: 14px;">
+							<div class="form-group">下发部门 ：</div>
+						</div>
+						<div class="col-md-8" style="margin-top: 10px;">
+							<select class="js-data-example-ajax font_black_famil" id="hyDepartment" style="width: 30%;">
+								<option value="一分局一大队">一分局一大队</option>
+								<option value="一分局二大队">一分局二大队</option>
+								<option value="二分局一大队">二分局一大队</option>
+							</select>
+							<label class="font_black_famil" style="margin-left:8px;">
+						      <input id="sendsms" type="checkbox" value="yes" checked="checked">&nbsp;短信通知
+						    </label>
+						</div> -->
+						<div class="col-md-2" style="margin-top: 10px;">
+							<button type="button" ng-click="updateDisposalProcess()" class="btn pams_query">
+								<span>确定 <!-- <i class="fa fa-check"></i> --></span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

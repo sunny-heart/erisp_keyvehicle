@@ -1,0 +1,7 @@
+/**
+ * 跳转
+ */
+app.controller('indexController', ['$scope','$state','$modal','SweetAlert','$document',
+  function($scope, $state, $modal,SweetAlert,$document){
+	$state.go('app.map');
+}]);

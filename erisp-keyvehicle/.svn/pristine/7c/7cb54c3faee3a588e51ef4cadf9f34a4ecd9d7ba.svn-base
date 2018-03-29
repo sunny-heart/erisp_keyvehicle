@@ -1,0 +1,81 @@
+app.factory("warningDisposalService",["$http",function($http) {
+		
+		// 获取预警处置流程列表信息
+    	function queryWarningDisposalViewList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/warningDisposal/queryWarningDisposalViewList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// 修改预警处置流程信息
+    	function updateDisposalProcess(params,success,error) {
+    		var dataUrl = "/erisp-keyvehicle/service/warningDisposal/updateDisposalProcess";
+    		$http({
+    			url : dataUrl,
+    			method : "POST",
+    			params : {"disposalProcessJsonStr":params}
+    		}).success(function(data) {
+    			success(data);
+    		}).error(function(data) {
+    			error(data)
+    		});
+    	}
+    	
+    	// 修改处置录入流程信息
+    	function updateDisposalEntry(params,success,error) {
+    		var dataUrl = "/erisp-keyvehicle/service/warningDisposal/updateDisposalEntry";
+    		$http({
+    			url : dataUrl,
+    			method : "POST",
+    			params : {"disposalEntryJsonStr":params}
+    		}).success(function(data) {
+    			success(data);
+    		}).error(function(data) {
+    			error(data)
+    		});
+    	}
+    	
+    	// 获取车辆年审预警信息
+    	function queryWarningOfMotTestViewList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/vehicleInfo/queryVehicleMotTest";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// 处置车辆年审预警
+    	function dealMotTest(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/vehicleInfo/dealMotTest";
+            $http({
+                url : dataUrl,
+                method : "POST",
+                params : {"id":params}
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+	    return {
+	    	queryWarningDisposalViewList:queryWarningDisposalViewList,
+	    	updateDisposalProcess:updateDisposalProcess,
+	    	updateDisposalEntry:updateDisposalEntry,
+	    	queryWarningOfMotTestViewList:queryWarningOfMotTestViewList,
+	    	dealMotTest:dealMotTest
+	    }
+    }
+])

@@ -1,0 +1,32 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.RecPlateInfoView;
+import com.gkhb.keyvehicle.slave.service.RecPlateInfoService;
+
+@Controller
+@RequestMapping(("/recPlateInfo"))
+public class RecPlateInfoController {
+
+	@Autowired
+    private RecPlateInfoService recPlateInfoService;
+  
+	@RequestMapping(value = "/queryAllRecPlateInfo", method = RequestMethod.GET)
+	public Model queryAllRecPlateInfo(QueryConditionData queryConditionData){
+		Model model = new ExtendedModelMap();
+    	List<RecPlateInfoView> recPlateInfoList = recPlateInfoService.queryAll(queryConditionData);
+//    	System.out.println("list.size======"+recPlateInfoList.size());
+    	model.addAttribute("recPlateInfoList",recPlateInfoList);
+		return model;
+    }
+
+}

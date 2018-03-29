@@ -1,0 +1,91 @@
+<div class="modal-header" style="height:50px;border-bottom: solid 2px #666666;">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">×</button>
+	<h3 class="modal-title" style="color: #000000 !important;font-size:18px;">预警处置页面</h3>
+</div>
+<!-- <div id="map" ng-controller="warningDisposalWindowCtrl" style="position:relative;height:1024px;">
+</div> -->
+<div class="modal-body">
+		<div class="row-fluid" style="border: 1px solid #ccc; margin-bottom: 11px; width: 100%; height: 190px">
+			<div class="col-md-4 font_black_famil">
+				<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">车辆预警信息</div>
+				<div class="title_line1" style="width:322%;"></div>
+				<div class="form-group">预警时间：{{earlyWarningInfo.warningStartTime | date:'yyyy-MM-dd HH:mm:ss' | chineseIsNull}}</div>
+				<div class="form-group" style="width:322%;">预警内容：{{vehicleInfo.plateNumber | noteOfPlateNumber}}{{earlyWarningInfo.roadName | noteOfPlace}}{{earlyWarningInfo.warningExplain}}</div>
+				<div class="form-group" style="width:322%;" id="warningEnterDetail" ng-if="earlyWarningInfo.disposalWay == 1">
+					<div class="col-md-12 font_black_famil" style="padding-left:0;">
+						<span style="vertical-align: top;">处置细则：</span>
+						<textarea style="resize:none;width:90%;" id="rules" rows="2">{{disposalRules}}</textarea>
+					</div>
+				</div>
+				<div class="form-group" style="width:322%;" id="warningDisposalWayCheckBox" ng-if="earlyWarningInfo.disposalWay == 0">
+					<div class="col-md-4" style="padding-left:0;">
+						处置方式：
+						<select class="js-data-example-ajax font_black_famil" ng-model="disposalMethods" id="disposalMethods2" style="width: 30%;">
+							<option value="处置" selected="selected">处置</option>
+							<option value="不处置" >不处置</option>
+						</select>
+					</div>
+					<div class="col-md-4" id = "detailedMthod">
+						具体方式：
+					    <label class="font_black_famil">
+					    	<input name="disposalWay" id="dispatch" type="checkbox" value="派警处置">派警处置
+					    </label>
+					    <label class="font_black_famil">
+					    	<input name="disposalWay" id="copy" type="checkbox" value="抄告处置">抄告处置
+					    </label>
+				    </div>
+				    
+				    <div id = "ignoreReason" class="col-md-4" style="display: none;">
+						原因：
+					    <label class="font_black_famil">
+					    	<input name="disposalWay" id="wrong" type="checkbox" value="误报">误报
+					    </label>
+					    <label class="font_black_famil">
+					    	<input name="disposalWay" id="repeat" type="checkbox" value="重复预警">重复预警
+					    </label>
+					    <label class="font_black_famil">
+					    	<input name="disposalWay" id="others" type="checkbox" value="其它">其它
+					    </label>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4 font_black_famil">
+				<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+				<div class="form-group" style="margin-top: 29px;">预警事件：{{earlyWarningInfo.warningTypeExplain | chineseIsNull}}</div>
+			</div>
+			<div class="col-md-4 font_black_famil">
+				<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+				<div class="form-group" style="margin-top: 29px;">预警地点：{{earlyWarningInfo.roadName | chineseIsNull}}</div>
+			</div>
+		</div>
+			
+		<div class="row-fluid" style="border: 1px solid #ccc; margin-bottom: 15px; width: 100%; height: 230px">
+			<div class="col-md-4 font_black_famil">
+				<div style="font-size: 20px; margin-bottom: 11px; margin-top: 10px;">车辆基本信息</div>
+				<div class="title_line1" style="width:200%;"></div>
+				<div class="form-group">车辆牌号：{{vehicleInfo.plateNumber}}</div>
+				<!-- <div class="form-group">车辆种类：{{vehicleInfo.vehicleKind}}</div> -->
+				<div class="form-group">车架号码：{{vehicleInfo.vehicleFrameNumber}}</div>
+				<div class="form-group">行业主管部门：{{vehicleInfo.competentAuthority}}</div>
+				<div class="form-group" style="color:red;">当前年度违法次数：{{illegalTotal}}</div>
+				<div class="form-group">所属公司：{{vehicleInfo.ascriptionCompany}}</div>
+			</div>
+			<div class="col-md-4 font_black_famil">
+				<div style="font-size: 20px; margin-bottom: 10px; margin-top: 10px;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+				<div class="form-group" style="margin-top: 29px;">车辆类型：{{vehicleInfo.vehicleType}}</div>
+				<div class="form-group">车辆类别：{{vehicleInfo.plateType | chineseType}}</div>
+				<div class="form-group">注册登记日期：{{vehicleInfo.registrationDate.time | date:'yyyy-MM-dd'}}</div>
+				<div class="form-group" style="color:red;">当前年度事故次数：{{accidentTotal}}</div>
+				<div class="form-group">年审状态：{{vehicleInfo.motTestState}}</div>
+			</div>
+			<div class="col-md-3 font_black_famil">
+				<img alt="" src="{{basePicUrl+vehicleInfo.platePictureUrl | defaultPic}}" ng-click="showVehiclePicture(vehicleInfo)" style="width:265px;height:225px;margin-top:3px;">
+			</div>
+		</div>
+		<div style="text-align: right;height:15px;margin-bottom: 5px;">
+			<button type="button" ng-click="updateDisposalProcess()" class="btn pams_query">
+				<span>确定</span>
+			</button>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.RoadBasisInfoMapper">
+	<insert id="addRoadBasisInfo" parameterType="com.gkhb.keyvehicle.model.RoadBasisInfo">
+		INSERT INTO
+		kv_road_basis_info(
+		ID,
+		ROAD_NAME,
+		ROAD_LENGTH,
+		SPEED_LIMIT,
+		ROAD_REGION,
+		STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{roadName},
+		#{roadLength},
+		#{speedLimit},
+		#{roadRegion},
+		#{state}
+		);
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryRoadBasisInfo" resultType='com.gkhb.keyvehicle.model.RoadBasisInfo'>
+		SELECT * FROM
+		KV_ROAD_BASIS_INFO
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateRoadBasisInfo" parameterType="com.gkhb.keyvehicle.model.RoadBasisInfo">
+		UPDATE
+		kv_road_basis_info SET
+		ROAD_NAME=#{roadName},
+		ROAD_LENGTH=#{roadLength},
+		SPEED_LIMIT=#{speedLimit},
+		ROAD_REGION=#{roadRegion},
+		STATE=#{state}
+		WHERE
+		ID=#{id}
+	</update>
+
+
+</mapper>

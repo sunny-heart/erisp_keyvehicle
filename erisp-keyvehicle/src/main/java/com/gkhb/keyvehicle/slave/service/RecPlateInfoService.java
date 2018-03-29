@@ -1,0 +1,12 @@
+package com.gkhb.keyvehicle.slave.service;
+
+import java.util.List;
+
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.RecPlateInfoView;
+
+public interface RecPlateInfoService {
+	
+	public List<RecPlateInfoView> queryAll(QueryConditionData queryConditionData);
+	public List<RecPlateInfoView> queryRecPlateInfo(QueryConditionData queryConditionData);
+}

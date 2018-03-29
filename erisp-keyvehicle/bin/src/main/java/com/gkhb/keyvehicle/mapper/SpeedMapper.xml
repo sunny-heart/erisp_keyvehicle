@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 车辆速度Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.SpeedMapper">
+
+	<!-- 预警查询-超速 -->
+	<select id="queryWarningInfo" resultType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		SELECT
+		speed.ID AS id,
+		'超速' AS warningType,
+		speed.VEHICLE_TYPE AS vehicleType,
+		vehicle.PLATE_NUMBER AS plateNumber,
+		CONCAT(CONCAT('设置超速为 ',speed.HIGH_SPEED),' km/h') AS remark
+
+		FROM KV_SPEED speed
+		LEFT JOIN KV_VEHICLE_INFO vehicle
+		ON speed.VEHICLE_ID = vehicle.ID
+		<where>
+			<if
+				test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+				AND speed.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+			</if>
+			<if
+				test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+				AND vehicle.PLATE_NUMBER like
+				CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+			</if>
+			AND speed.STATE = 0
+		</where>
+	</select>
+
+	<!-- 根据车辆id查询车辆速度 -->
+	<select id="querySpeedByVehicleId" resultType='com.gkhb.keyvehicle.model.Speed'>
+		SELECT * FROM
+		KV_SPEED WHERE VEHICLE_ID = #{vehicleId} and STATE = 0 and ROWNUM = 1
+	</select>
+
+	<!-- 根据车辆类型查询车辆速度 -->
+	<select id="querySpeedByVehicleType" resultType='com.gkhb.keyvehicle.model.Speed'>
+		SELECT * FROM
+		KV_SPEED WHERE VEHICLE_TYPE = #{vehicleType} and STATE = 0 and ROWNUM
+		= 1
+	</select>
+
+	<!-- 删除预警信息 -->
+	<delete id="deleteWarningInfo" parameterType="java.lang.String">
+		DELETE FROM KV_SPEED WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+
+</mapper>

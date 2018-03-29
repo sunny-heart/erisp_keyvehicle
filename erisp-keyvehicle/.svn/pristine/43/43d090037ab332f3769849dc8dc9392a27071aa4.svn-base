@@ -1,0 +1,55 @@
+'use strict';
+angular.module("pams", [
+	'ngAnimate',
+	'ngCookies',
+	'ngStorage',
+	'ngSanitize',
+	'ngTouch',
+	'ui.router',
+	'ui.bootstrap',
+	'oc.lazyLoad',
+	'cfp.loadingBar',
+	'ncy-angular-breadcrumb',
+//	'duScroll',
+	'pascalprecht.translate',
+]);
+
+/**
+ * 运行模式。false-产品，true-调试
+ * 由于正式环境与开发环境可能存在差异很多差异（如：ArcGis服务地址），根据判断不同的模式，可以选择不同运行模式
+ * @type {boolean}
+ */
+var DEVELOP_MODE = true;
+
+var refreshMap = 60000;//2秒刷新一次
+
+/**
+ * dataIp:数据服务接口地址。
+ * 格式ip:port
+ * @type {string}
+ */
+var dataIp = '';
+
+/**
+ * ArcGis服务地址。
+ * 服务全路径
+ * @type {string}
+ */
+var BASE_SERVER = '';
+
+if (DEVELOP_MODE){
+	// 开发模式初始化
+	BASE_SERVER = 'http://server.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer';
+//    dataIp = "192.168.199.216:8000";
+//    dataIp = "localhost:8080";
+     dataIp = "192.168.199.226:8080";//数据接口ip--sunting
+	// dataIp = "localhost";//数据接口ip
+	// dataIp = "192.168.199.177";//数据接口ip --eddy
+} else {
+	// 产品模式初始化
+    BASE_SERVER = 'http://20.0.56.14:8399/arcgis/rest/services/201406chengdu/cd_base_0716/MapServer';
+    dataIp = '20.2.13.2:8080';//TODO
+}
+
+var imageSize = 28;//图标大小
+

@@ -1,0 +1,1224 @@
+app.controller('demoMapCtrl', [
+		'$scope',
+		'$filter',
+		'$timeout',
+		'$state',
+		'mapService',
+		'$rootScope',
+		'SweetAlert',
+		'$interval',
+		function($scope, $filter, $timeout, $state, mapService, $rootScope,SweetAlert, $interval) {
+			
+	$scope.queryConditionData = {};
+	$scope.locations = [];		//存储所有车辆信息数据
+	$scope.hisLocations = [];	//存储某段时间内某辆车的历史轨迹信息数组
+	$scope.realLocations = [];	//存储某一车辆历史轨迹信息数组
+	$scope.queryConditionData.vehicleType = "";
+	$scope.vehicleModel = {};	
+	$scope.plateNumberLocations = ["B","C","D"];//车牌地址数组
+	$scope.plateInfo = {};	//车牌信息集合
+	$scope.disposalMethods = "处置";
+    $scope.hyDepartment = "物流云平台";
+    $scope.disposalProcess = {};
+	var graps = []; //存储图标图层实例
+	var len;//graps的长度
+	
+	var map;	//地图
+	var layerOfNew; //新能源图层
+	var layerOfDangerous; //危化品图层
+	var layerOfCold; //冷链车图层
+	var layerOfOrdinary; //普通车图层
+	var layerOfOnVehicle; //定位某两车的图层
+	var gra;
+	var pN;		//选中车辆的车牌号码
+	var refresh = false;//实时信息是否定时刷新，默认false
+	var hisRefresh = false;//车辆历史轨迹是否定时刷新，默认为false
+	var fristComing = true;//是否第一次进入,默认为true
+	var timeClicked = false;//包含开始结束时间的div是否被点击，默认为false
+	var infoIsClicked = false;//基本信息按钮是否被点击，默认为false
+	var trajectoryIsClicked = false;//行驶轨迹按钮是否被点击，默认为false
+	var earlyWarningIsClicked = false;//预警处置按钮是否被点击，默认为false
+	var gpsIsClicked = false;//GPS轨迹按钮是否被点击，默认为false
+	var bayonetIsClicked = false;//卡口轨迹按钮是否被点击，默认为false
+	var hourIsClicked = false;//1小时内按钮是否被点击，默认为false
+	var dayIsClicked = false;//24小时内按钮是否被点击，默认为false
+	var customizeIsClicked = false;//自定义时间按钮是否被点击，默认为false
+	var singleCar; //记录上个选中车辆的实时标记，以便移除
+	var haveShowLine = false; //标记是否打开了行驶轨迹
+	var timeRefresh; //实时刷新车辆历史轨迹
+	var realLocalRefresh; //实时刷新单个车辆位置定时器
+	var warningRefresh; //预警信息定时刷新
+	var showLineRefresh; //历史轨迹定时刷新
+	var driveInfoRefresh; //行驶信息刷新
+	var totalCountsRefresh; //车辆总数统计刷新
+	var globalPlateNumber; //记录选中辆车的车牌号
+    var showLineLength = 1; //定义每次加载的历史轨迹长度
+    var loadLocalTimes = 0; //加载某辆车实时位置的次数
+    var checkedName;	//菜单选择框名称
+    var posX; //气泡弹出div的x坐标
+    var posY;//气泡弹出div的y坐标
+	
+	$scope.currentPage = 1;//初始化当前页
+    $scope.pageSize = 10;//初始化每页大小
+    $scope.queryConditionData = {
+            'currentPage':  1,
+            'pageSize': $scope.pageSize
+    }
+    
+    var textgraph;//文字要素
+    var textgraphs=[];//文字要素数组
+    var layerOfOrdinaryText; //普通车标记图层
+    var layerOfNewText; //新能源图层
+	var layerOfDangerousText; //危化品图层
+	var layerOfColdText; //冷链车图层
+	var mapZoom = 16;
+//	var mapZoom = 8;//内网地图缩放等级
+	//标记当前图层是否在显示状态
+	var layerOfOrdinaryFlag = false;
+	var layerOfNewFlag = false;
+	var layerOfDangerousFlag = false;
+	var layerOfColdFlag = false;
+	
+	$scope.showall = true;//panel显示全部左侧
+	$scope.showright = false;//右侧
+	
+	$scope.toLeftRigth = function(showFlag,position){
+		if(position == "left"){
+			$scope.showall = showFlag;
+		}else if(position == "right"){
+			$scope.showright = showFlag;
+		}
+	}
+    
+  //监听复选框选中状态
+    $scope.$watch('checkedName + checkedState',function(){
+    	if(realLocalRefresh!=undefined){
+			$interval.cancel(realLocalRefresh);
+		}
+    	if(driveInfoRefresh!=undefined){
+			$interval.cancel(driveInfoRefresh);
+		}
+		$("#oneWarningTotalDiv").hide();
+    	if($rootScope.checkedState){
+    		if(layerOfOnVehicle!=null & layerOfOnVehicle!=undefined){
+            	map.removeLayer(layerOfOnVehicle);
+            }
+    		switch ($rootScope.checkedName) {
+			case "新能源":
+				if(layerOfNew.graphics.length<=0){
+					$scope.query("新能源");
+				}
+				layerOfNewFlag = true;
+				$scope.queryConditionData.newChecked = "新能源";
+				layerOfNew.setVisibility(true);
+				$scope.queryConditionData.vehicleType = "新能源";
+				if(map.getZoom()>mapZoom){
+            		layerOfNewText.setVisibility(true);
+            	}else{
+            		layerOfNewText.setVisibility(false);
+            	}
+				break;
+			case "冷链":
+				if(layerOfCold.graphics.length<=0){
+					$scope.query("冷链车");
+				}
+				layerOfColdFlag = true;
+				$scope.queryConditionData.dangerousChecked = "冷链车";
+				layerOfCold.setVisibility(true);
+				$scope.queryConditionData.vehicleType = "冷链车";
+				if(map.getZoom()>mapZoom){
+            		layerOfColdText.setVisibility(true);
+            	}else{
+            		layerOfColdText.setVisibility(false);
+            	}
+				break;
+			case "危化品":
+				if(layerOfDangerous.graphics.length<=0){
+					$scope.query("危化品");
+				}
+				layerOfDangerousFlag = true;
+				$scope.queryConditionData.coldChecked = "危化品";
+				layerOfDangerous.setVisibility(true);
+				$scope.queryConditionData.vehicleType = "危化品";
+				if(map.getZoom()>mapZoom){
+					layerOfDangerousText.setVisibility(true);
+            	}else{
+            		layerOfDangerousText.setVisibility(false);
+            	}
+				break;
+			case "普通":
+				if(layerOfOrdinary.graphics.length<=0){
+					$scope.query("普通车");
+				}
+				layerOfOrdinaryFlag = true;
+				$scope.queryConditionData.ordinaryChecked = "普通车";
+				layerOfOrdinary.setVisibility(true);
+				$scope.queryConditionData.vehicleType = "普通车";
+				if(map.getZoom()>mapZoom){
+					layerOfOrdinaryText.setVisibility(true);
+            	}else{
+            		layerOfOrdinaryText.setVisibility(false);
+            	}
+				break;
+			default:
+				break;
+			}
+    		$("#rightDiv").attr("style","display:inline;width:25%;position: absolute;z-index:4;top:0px;right:0px;");
+    	}else{
+    		switch ($rootScope.checkedName) {
+			case "新能源":
+				layerOfNewFlag = false;
+				$scope.queryConditionData.newChecked = null;
+				layerOfNew.setVisibility(false);
+				layerOfNewText.setVisibility(false);
+				break;
+			case "冷链":
+				layerOfColdFlag = false;
+				$scope.queryConditionData.dangerousChecked = null;
+				layerOfCold.setVisibility(false);
+				layerOfColdText.setVisibility(false);
+				break;
+			case "危化品":
+				layerOfDangerousFlag = false;
+				$scope.queryConditionData.coldChecked = null;
+				layerOfDangerous.setVisibility(false);
+				layerOfDangerous.setVisibility(false);
+				break;
+			case "普通":
+				layerOfOrdinaryFlag = false;
+				$scope.queryConditionData.ordinaryChecked = null;
+				layerOfOrdinary.setVisibility(false);
+				layerOfOrdinaryText.setVisibility(false);
+				break;
+			default:
+				break;
+			}
+    	}
+    	$scope.queryEarlyWarningInfoCounts();
+    });
+    
+  //翻页
+    $scope.pageChanged = function () {
+	   	//当前页
+	   	$scope.queryConditionData.currentPage = $scope.currentPage;
+	   	$scope.queryFunction();
+    };
+    
+    $(document).ready(function(){
+    	for(var i = 0;i<$scope.plateNumberLocations.length;i++){
+    		$("#plateNumberLocations").append("<option value='"+$scope.plateNumberLocations[i]+"'>"+$scope.plateNumberLocations[i]+"</option>");
+    	}
+    })
+	
+	//根据车牌号搜索历史轨迹
+	$scope.queryVehicleHisTrajectoryInfoByPlateNumber = function(){
+		mapService.queryVehicleHisTrajectoryInfoByPlateNumber(pN,function (data) {
+		$scope.realLocations = [];
+		if (data.state == 200) {
+			$scope.vehicleHisTrajectoryInfo = data.messageBody.vehicleHisTrajectoryInfoList;
+			var result = $scope.vehicleHisTrajectoryInfo;
+			for(var i=0;i<result.length;i++){
+				var location = "";
+				location = result[i].latitude+"-"+result[i].longitude+"-"+result[i].vehicleType;
+				$scope.realLocations.push(location);
+				}
+			}
+		}, function (err) {
+		})
+		}
+    
+     //根据车牌号搜索车辆信息
+	 $scope.queryVehicleByPlateNumber = function(){
+		 $scope.queryConditionData.plateNumber = "川" + $scope.plateInfo.location + $("#plateNumber").val().toUpperCase().trim();
+		 $scope.queryConditionData.pageSize = 10;
+		 console.log(mapService);
+		 console.log($scope.queryConditionData);
+		 mapService.queryByPlateNumber($scope.queryConditionData,function (data) {
+	            if (data.state == 200) {
+	            	$scope.vehicleInfoList = data.messageBody.vehicleInfoList;
+	            	$scope.totalItems = data.messageBody.page.count;
+	            	$scope.currentPage = data.messageBody.page.page;
+	            	$scope.pages = data.messageBody.page.pages;
+	            }
+	        }, function (err) {
+	        })
+	        
+	    }
+	 
+	//根据车辆类型过滤车辆信息并显示
+//	 $scope.queryVehicleInfoByVehicleType = function(vehicleType){
+//		 mapService.queryVehicleInfoByVehicleType(vehicleType,function (data) {
+//	            if (data.state == 200) {
+//	            	$scope.vehicleInfo = data.messageBody.vehicleInfoViewList;
+//	            }
+//	        }, function (err) {
+//	        })
+//	    }
+	 
+	 //根据车牌号码查询车辆卡口信息
+	 $scope.queryAllRecPlateInfo = function(){
+		 mapService.queryAllRecPlateInfo($scope.queryConditionData,function (data) {
+			 if (data.state == 200) {
+				 $scope.bayonetData = data.messageBody.recPlateInfoList;
+			 }
+		 }, function (err) {
+		 })
+	 }
+	 
+	 //根据用户类型和部门名称获取预警处置信息
+	 $scope.queryWarningDisposalViewList = function(){
+//		 $scope.queryConditionData.plateNumber = pN;
+		 $scope.queryConditionData.userType = "1";
+		 $scope.queryConditionData.department = "1";
+		 $scope.queryConditionData.pageSize = 20;
+		 mapService.queryWarningDisposalViewList($scope.queryConditionData,function (data) {
+			 if (data.state == 200) {
+				 $scope.warningDisposalViewList = data.messageBody.warningDisposalViewList;
+				 var result = $scope.warningDisposalViewList;
+				 var showResult = [];
+				 for(var i = 0;i<=result.length;i++){
+					 if(undefined != result[i] && null != result[i]){
+						 if(undefined != result[i].earlyWarningInfo && null != result[i].earlyWarningInfo){
+//							 var today = new Date(new Date().toLocaleDateString()).getTime();
+							 var nowDate = new Date();
+							 var today = Date.parse(new Date(nowDate.getFullYear()+"-"+(nowDate.getMonth()+1)+"-"+nowDate.getDate()));
+							 var time = result[i].earlyWarningInfo.warningStartTime.time;
+							 if(time > today){
+								 showResult[i] = result[i];
+							 }
+						 }
+					 }
+				 }
+				 $scope.showWarningDisposalViewList = showResult;
+			 }
+		 }, function (err) {
+		 })
+	 }
+	 
+	//重置
+	$scope.reset = function(){
+		$("#plateNumber").empty();
+		$scope.queryConditionData = {};
+		};
+
+	//查询车辆的实时信息
+		$scope.queryVehicleRealTimeInfo = function () {
+			mapService.queryVehicleRealTimeInfo($scope.queryConditionData,function (data) {
+				if (data.state == 200) {
+					$scope.vehicleRealTimeInfo = data.messageBody.vehicleRealTimeInfo;
+					var result = $scope.vehicleRealTimeInfo;
+					for(var i=0;i<result.length;i++){
+						var location = "";
+						location = result[i].latitude+"-"+result[i].longitude+"-"+result[i].vehicleType;
+						$scope.locations.push(location);
+						}
+					$scope.showMap();
+					}
+				}, function (err) {
+				})};
+
+	//查询某段时间内某辆车的历史轨迹信息
+	$scope.queryServiceLocation = function() {
+		$scope.queryConditionData.startTime = $("#startTime").val();
+        $scope.queryConditionData.endTime = $("#endTime").val();
+        $scope.queryConditionData.plateNumber = pN;
+        $scope.hisLocations = [];
+	    mapService.queryLocations($scope.queryConditionData,function (data) {
+	    //清空存储某段时间内某辆车的历史轨迹信息数组
+	    if (data.state == 200) {
+	    	$scope.movePaths = eval(data.messageBody.movePaths);
+	        var result = $scope.movePaths;
+	        for(var i=0;i<result.length;i++){
+	        	var location = "";
+	            location = result[i].latitude+"-"+result[i].longitude+"-"+result[i].vehicleType+"-"+result[i].plateNumber;
+	            $scope.hisLocations.push(location);
+	            }
+	        }
+	    }, function (err) {
+	    })
+	    }
+	
+	//查询所有车辆信息
+    $scope.queryFunction = function (data) {
+    	$scope.queryConditionData.plateNumber = "川" + $scope.plateInfo.location + $("#plateNumber").val().toUpperCase().trim();
+    	$scope.queryConditionData.pageSize = 10;
+    	mapService.queryVehicleInfo($scope.queryConditionData,function (data) {
+    	    if (data.state == 200) {
+            	$scope.vehicleInfoList = data.messageBody.vehicleInfo;
+            	$scope.totalItems = data.messageBody.page.count;
+            	$scope.currentPage = data.messageBody.page.page;
+            	$scope.pages = data.messageBody.page.pages;
+            }
+        }, function (err) {
+        })
+    };
+	
+	$scope.timePreviousClick = function($event){
+		var obj = $event.target;
+		if($(obj).attr("id")!="diyTimePrevious"){
+			$scope.queryConditionData.timePrevious = $(obj).find('.hiddenSpan').text();
+	        $scope.queryConditionData.startTime = null;
+	        $scope.queryConditionData.endTime = null;
+	        }else{
+	        	$scope.queryConditionData.timePrevious = null;
+	        }
+		}
+	
+	//点击车辆信息显示其基本信息和轨迹选择方框
+	$scope.checkedVehicle = function(data,e){
+		//$scope.clearHisLine();
+		hisRefresh = false;
+		pN = data.plateNumber;
+		globalPlateNumber = pN;
+		$scope.oneInfo = data;
+		$scope.showOneVehicleInfo(data.plateNumber);
+		//选中行加色
+		$(e.currentTarget).addClass("vehicleInfoTr").siblings().removeClass("vehicleInfoTr");
+	}
+	
+	//点击一辆车辆，显示其相关的界面和信息
+	$scope.showOneVehicleInfo = function(plateNumber){
+		if(driveInfoRefresh!=undefined){
+			$interval.cancel(driveInfoRefresh);
+		}
+		$scope.hideAllGraphics();
+		$scope.tabOnOneVehicle(plateNumber);
+		$scope.queryWarningDisposalViewList();
+		map.setZoom(6);
+		
+		$scope.loadOneDriveInfo(plateNumber);
+		
+		//刷新行驶信息
+    	driveInfoRefresh = $interval(function(){
+    		$scope.loadOneDriveInfo(globalPlateNumber);
+        },10000,60);
+	}
+	
+	//点击一个车标，显示车辆速度和预警
+	$scope.tabOnVechicleIco = function(plateNumber){
+		if(driveInfoRefresh!=undefined){
+			$interval.cancel(driveInfoRefresh);
+		}
+		$scope.loadOneDriveInfo(plateNumber);
+		
+    	//刷新行驶信息
+    	driveInfoRefresh = $interval(function(){
+    		$scope.loadOneDriveInfo(globalPlateNumber);
+        },10000,60);
+	}
+	
+	//加载车辆行驶信息
+	$scope.loadOneDriveInfo = function(plateNumber){
+		globalPlateNumber = plateNumber;
+		$scope.queryVehicleDriveInfo(plateNumber);
+		$scope.plateNumber = plateNumber;
+		$("#oneWarningTotalDiv").show();
+	}
+	
+	//查某车预警及速度
+	$scope.queryVehicleDriveInfo = function(plateNumber){
+		$scope.plateNumber = plateNumber;
+		mapService.queryVehicleDriveInfo(plateNumber,function (data) {
+			 if (data.state == 200) {
+				 $scope.vehicleDriveInfo = data.messageBody.vehicleDriveInfo;
+			 }
+		})
+	}
+	
+	//标记出选定的车辆
+	$scope.tabOnOneVehicle = function(plateNumber){
+		mapService.queryOneVehicleRealTimeInfo(plateNumber,function (data) {
+			 if (data.state == 200 && data.messageBody.oneVehicleRealTimeInfo!=null) {
+				 	if(layerOfOnVehicle!=null & layerOfOnVehicle!=undefined){
+		            	map.removeLayer(layerOfOnVehicle);
+		            }
+					$scope.oneVehicleInfo = data.messageBody.oneVehicleRealTimeInfo;
+					var result = $scope.oneVehicleInfo;
+					var warningType = result.warningType;
+					var time = "";
+	             	switch(warningType)
+	            	{
+	        	    	case '1':
+	        	    		warningType = "违规路线行驶";
+	        	    		break;
+	        	    	case '2':
+	        	    		warningType = "违规时间行驶";
+	        	      	  	break;
+	        	    	case '3':
+	        	    		warningType = "超速行驶";
+	        	    		break;
+	        	    	case '4':
+	        	    		warningType = "疲劳驾驶";
+	        	    		break;
+	        	    	default:
+	        	    		warningType = "";
+							break;
+	        	    	
+	            	}
+	             	if(undefined != result.warningEndTime && null != result.warningEndTime){
+	             		var endtime = result.warningEndTime.time;
+	             		time = $filter("date")(endtime, "yyyy-MM-dd HH:mm:ss");
+	             	}
+					//map.graphics.clear();
+					$scope.hideAllGraphics();
+					
+					//添加车标
+					var pt = new esri.geometry.Point(result.longitude,result.latitude);
+					var pic;
+					if(result.vehicleType == "新能源"){
+	             		pic = new esri.symbol.PictureMarkerSymbol("assets/images/new-energy-vehicle.png",21,21);
+	             	}else if(result.vehicleType == "危化品"){
+	             		pic = new esri.symbol.PictureMarkerSymbol("assets/images/dangerous-goods-vehicle.png",21,21);
+	             	}else if(result.vehicleType == "冷链车"){
+	             		pic = new esri.symbol.PictureMarkerSymbol("assets/images/cold-chain-vehicle.png",21,21);
+	             	}else if(result.vehicleType == "普通车"){
+	             		pic = new esri.symbol.PictureMarkerSymbol("assets/images/ordinary-vehicle.png",21,21);
+	             	}
+					var attr = {"vehicleType":result.vehicleType,"plateNumber":result.plateNumber};
+			     	map.infoWindow.resize(500,200);
+			     	var infoTemplate = new esri.InfoTemplate("" +
+			     			"<font style='font-weight:bold;font-size:18px;color:#000000;'>" +
+			     			"车牌号码：<label class='pn'>${plateNumber}</label></font><br/>" +
+			     			"<div style='height:1px; width:100%; background:#BABABA; overflow:hidden;'></div>",
+			     			"<p style='font-size:14px;color:#000000;'><font style='font-weight:bold;'>" +
+			     			"车辆类型：</font>"+result.vehicleType+"</br>" +
+			     			"<font style='font-weight:bold;'>所属企业：</font>"+result.ascriptionCompany+"</br>" +
+			     			"<font style='font-weight:bold;'>管理部门：</font>"+result.competentAuthority+"</br>" +
+			     			"<font style='font-weight:bold;'>车架号：</font>"+result.vehicleFrameNumber+"</br>" +
+			     			"<font style='font-weight:bold;'>车辆类别：</font>"+result.plateType+"</br>" +
+			     			"<font style='font-weight:bold;'>年审状态：</font>"+result.motTestState+"</br>" +
+			     			"<a class='accidentTotal'><font style='font-weight:bold;'>年度事故次数：</font>"+result.accidentTotal+"</a></br>" +
+			     			"<a class='illegalTotal'><font style='font-weight:bold;'>年度违法次数：</font>"+result.illegalTotal+"</a></br>" +
+			     			"<font style='font-weight:bold;'>预警类型：</font>"+$scope.convertWarningType(result.warningType)+"</br>" +
+			     			"<font style='font-weight:bold;'>最近预警时间：</font>"+$scope.convertWarningTime(result.warningEndTime) +
+			     			"</p>");
+		        	var gp = new esri.Graphic(pt,pic,attr,infoTemplate);
+		        	layerOfOnVehicle = new esri.layers.GraphicsLayer();
+		        	layerOfOnVehicle.add(gp);
+		        	map.addLayer(layerOfOnVehicle);
+		        	if(singleCar != null && singleCar != ''){
+		        		map.graphics.remove(singleCar);
+		        	}
+		        	map.graphics.redraw();
+		        	//把地图中心定位到该车辆的位置
+		        	map.centerAt(pt);
+					if(loadLocalTimes==0){
+						realLocalRefresh = $interval(function(){
+					    	$scope.tabOnOneVehicle(globalPlateNumber);
+					    },10000,60);
+					}
+					loadLocalTimes++;
+			 }
+		},function(err){
+		})
+		
+	}
+
+    //预警信息点击事件
+    $scope.warningOnClick = function(data) {
+    	$("#earlyWarningDisposalDiv").attr("style","display:inline");
+    	//预警处置视图信息
+    	$scope.warningDisposalView = data;
+    	//处置流程信息
+    	$scope.disposalProcess = data.disposalProcess;
+    	//预警信息
+    	$scope.earlyWarningInfo = data.earlyWarningInfo;
+    	//预警事件、预警说明格式化
+    	switch($scope.earlyWarningInfo.warningType)
+    	{
+	    	case '1':
+	    		$scope.earlyWarningInfo['warningTypeExplain']="违规路线行驶";
+	    		$scope.earlyWarningInfo['warningExplain'] = "车辆不按照规定路线行驶！";
+	    		break;
+	    	case '2':
+	    		$scope.earlyWarningInfo['warningTypeExplain']="违规时间行驶";
+	    		$scope.earlyWarningInfo['warningExplain'] = "车辆不按照规定时间行驶！";
+	      	  	break;
+	    	case '3':
+	    		$scope.earlyWarningInfo['warningTypeExplain']="超速行驶";
+	    		$scope.earlyWarningInfo['warningExplain'] = "车辆超速行驶，限速为100公里/小时，当前时速105公里/小时！";
+	    		break;
+	    	case '4':
+	    		$scope.earlyWarningInfo['warningTypeExplain']="疲劳驾驶";
+	    		$scope.earlyWarningInfo['warningExplain'] = "车辆连续行驶4小时以上未进行20分钟休息！";
+	    		break;
+    	}
+    	//车辆信息
+    	$scope.vehicleInfoEarlyWarning = data.vehicleInfo;
+    	$scope.vehicleInfoEarlyWarning['vehicleKind'] = "物流车";
+    	
+    	//处置细则
+    	var date = new Date().setTime($scope.earlyWarningInfo.warningStartTime.time);
+    	var dateAsString = $filter('date')(date, "yyyy年MM月dd日 HH时mm分ss秒"); 
+    	$scope.disposalRules = dateAsString + $scope.vehicleInfoEarlyWarning.vehicleType + $scope.vehicleInfoEarlyWarning.plateNumber + $scope.earlyWarningInfo.warningExplain;
+    };
+    
+  //修改预警处置流程
+    $scope.updateDisposalProcess = function () {
+    	$("#earlyWarningDisposalDiv").attr("style","display:none");
+    	// 设置处置时间
+		$scope.disposalProcess['jgDisposalTime'] = $filter('date')(new Date(), "yyyy-MM-dd HH:mm:ss");
+		// 设置处理人
+		$scope.disposalProcess['jgUserId'] = "1";
+    	var jgDisposalInstructions = "";
+    	switch($scope.disposalMethods)
+    	{
+	    	case '忽略':
+	    		// 获取处置原因
+	    		if($("#wrong").is(':checked')){
+	    			jgDisposalInstructions += $("#wrong").val();
+	    		}
+	    		if($("#repeat").is(':checked')){
+	    			jgDisposalInstructions += ",";
+	    			jgDisposalInstructions += $("#repeat").val();
+	    		}
+	    		// 设置处置原因
+	    		$scope.disposalProcess['jgDisposalInstructions'] = $scope.disposalMethods + ",原因： " + jgDisposalInstructions;
+	    		// 设置处置流程状态为结束
+	    		$scope.disposalProcess['state'] = 1;
+	    		break;
+	    	case '处置':
+	    		// 设置下发部门
+	    		$scope.disposalProcess['hyDepartment'] = $scope.hyDepartment;
+	    		$scope.disposalProcess['jgDisposalInstructions'] = $scope.disposalMethods + ",下发部门： " + $scope.hyDepartment;
+	      	  	break;
+    	}
+    	mapService.updateDisposalProcess($scope.disposalProcess,function (data) {
+			 if (data.state == 200) {
+				 SweetAlert.swal("", "处置成功", "warning");
+				 // 初始化页面
+				 $scope.disposalProcess = {};
+				 $scope.earlyWarningInfo = {};
+				 $scope.vehicleInfoEarlyWarning = {};
+				 $scope.disposalRules = "";
+				 $scope.disposalMethods = "处置";
+				 $scope.hyDepartment = "物流云平台";
+				 $("#repeat").checked=false;
+				 $("#wrong").checked=false;
+            	 $scope.queryWarningDisposalViewList();
+			 }else{
+				 SweetAlert.swal("", "处置失败", "warning");
+			 }
+		 }, function (err) {
+			 SweetAlert.swal("", "处置失败", "warning");
+		 })
+    };
+
+    //处置下发方式改变
+    function checkDisposalMethods(value){
+    	switch (value) {
+		case "忽略":
+			$("#reasonDiv").attr("style","display:inline");
+			break;
+		case "处置":
+			$("#reasonDiv").attr("style","display:none");
+			break;
+		}
+    }
+    
+	//模态窗口出不来加了个延时
+	$timeout(function(){
+		$(".form_datetime").datetimepicker({
+			lang:'ch',
+			timepicker:true,
+			formatDate:'Y-m-d H:i'
+		});
+	},500);
+	
+	/**********************************地图图层显示start**********************************/
+    $scope.showMap = function(){
+    	require([  
+            "esri/map", 
+            "esri/layers/ArcGISTiledMapServiceLayer", 
+            "esri/geometry/Extent", 
+            "esri/geometry/Point", 
+            "esri/geometry/Polyline", 
+            "esri/SpatialReference",  
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/symbols/PictureMarkerSymbol", 
+            "esri/symbols/SimpleLineSymbol", 
+            "esri/layers/GraphicsLayer", 
+            "esri/graphic"  
+        ], function(
+        		Map, 
+        		ArcGISTiledMapServiceLayer, 
+        		Extent, 
+        		Point, 
+        		Polyline, 
+        		SpatialReference, 
+        		SimpleMarkerSymbol,
+        		PictureMarkerSymbol, 
+        		SimpleLineSymbol, 
+        		GraphicsLayer, 
+        		Graphic) {  
+//    		var BASE_SERVER = 'http://20.0.56.14:8399/arcgis/rest/services/201406chengdu/cd_base_0716/MapServer'
+   		var BASE_SERVER = 'http://server.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer';
+            map = new Map("map", {  
+                center: [104.0657754083, 30.6583098090],  
+//              zoom: 4,//内网地图缩放等级
+                zoom: 10,
+                logo:false,
+                nav:false,
+                slider:false
+            }); 
+    		var layer = new ArcGISTiledMapServiceLayer(BASE_SERVER);
+            map.addLayer(layer);
+            
+            layerOfNew = new GraphicsLayer();
+            map.addLayer(layerOfNew);
+            //添加点击事件
+     		layerOfNew.on("mouse-move",function(e){
+     			$scope.showInfoTemplate(e);
+            	if(e.graphic.attributes!=undefined){
+            		$scope.tabOnVechicleIco(e.graphic.attributes.plateNumber);
+            	}
+            });
+     		
+            layerOfDangerous = new GraphicsLayer();
+            map.addLayer(layerOfDangerous);
+            //添加点击事件
+     		layerOfDangerous.on("mouse-move",function(e){
+     			$scope.showInfoTemplate(e);
+            	if(e.graphic.attributes!=undefined){
+            		$scope.tabOnVechicleIco(e.graphic.attributes.plateNumber);
+            	}
+            });
+     		
+            layerOfCold = new GraphicsLayer();
+            map.addLayer(layerOfCold);
+            layerOfCold.on("mouse-move",function(e){
+            	$scope.showInfoTemplate(e);
+            	if(e.graphic.attributes!=undefined){
+            		$scope.tabOnVechicleIco(e.graphic.attributes.plateNumber);
+            	}
+            });
+            
+            layerOfOrdinary = new GraphicsLayer();
+            map.addLayer(layerOfOrdinary);
+            //添加点击事件
+     		layerOfOrdinary.on("mouse-move",function(e){
+     			$scope.showInfoTemplate(e);
+            	if(e.graphic.attributes!=undefined){
+            		$scope.tabOnVechicleIco(e.graphic.attributes.plateNumber);
+            	}
+            });
+            
+            layerOfNewText = new GraphicsLayer();
+            map.addLayer(layerOfNewText);
+            layerOfDangerousText = new GraphicsLayer();
+            map.addLayer(layerOfDangerousText);
+            layerOfColdText = new GraphicsLayer();
+            map.addLayer(layerOfColdText);
+            layerOfOrdinaryText = new GraphicsLayer();
+            map.addLayer(layerOfOrdinaryText);
+            
+            map.on("zoom", function(e){
+            	if(map.getZoom()>mapZoom){
+            		layerOfNewText.setVisibility(layerOfNewFlag);
+            		layerOfOrdinaryText.setVisibility(layerOfOrdinaryFlag);
+            		layerOfDangerousText.setVisibility(layerOfDangerousFlag);
+            		layerOfColdText.setVisibility(layerOfColdFlag);
+            	}else{
+            		layerOfNewText.setVisibility(false);
+            		layerOfOrdinaryText.setVisibility(false);
+            		layerOfDangerousText.setVisibility(false);
+            		layerOfColdText.setVisibility(false);
+            	}
+            });
+        });   
+    }
+    /**********************************地图图层显示end**********************************/
+    
+     //根据车辆类型搜索车辆信息
+	 $scope.query = function(vehicleType){
+		 $("#progressbar").show();
+		 $("#background_layer").show();
+		 $scope.vehicleModel.vehicleType = vehicleType;
+		 mapService.queryVehicleInfoByVehicleType(vehicleType,function (data) {
+			 if (data.state == 200) {
+				//var start = new Date().getTime();//起始时间
+				$scope.vehicleInfoView = data.messageBody.vehicleInfoViewList;
+				//$scope.vehicleInfo = data.messageBody.vehicleInfoViewList;//车牌号码查询
+				$scope.locations = [];//清空集合
+				var result = $scope.vehicleInfoView;
+	            graps = [];
+            	for(var i = 0;i<result.length;i++){
+	             	var pic;
+	             	if(result[i].vehicleType == "新能源"){
+	             		var pic = new esri.symbol.PictureMarkerSymbol("assets/images/new-energy-vehicle.png",21,21);
+	             	}else if(result[i].vehicleType == "危化品"){
+	             		var pic = new esri.symbol.PictureMarkerSymbol("assets/images/dangerous-goods-vehicle.png",21,21);
+	             	}else if(result[i].vehicleType == "冷链车"){
+	             		var pic = new esri.symbol.PictureMarkerSymbol("assets/images/cold-chain-vehicle.png",21,21);
+	             	}else if(result[i].vehicleType == "普通车"){
+	             		var pic = new esri.symbol.PictureMarkerSymbol("assets/images/ordinary-vehicle.png",21,21);
+	             	}
+	             	showLocation(result[i].longitude,result[i].latitude,pic,result[i].vehicleType,result[i].plateNumber);
+            	}
+            	//var end = new Date().getTime();
+                //console.log((end - start)+"ms");
+			}
+			$("#progressbar").hide();
+			$("#background_layer").hide();
+		 }, function (err) {
+		 })
+	 }
+	 
+	 //点击车辆图标弹出气泡
+	 $scope.showInfoTemplate = function(e){
+		 var plateNumber = e.graphic.attributes.plateNumber;
+		 mapService.queryVehicleOfOtherInfoByPlateNumber(plateNumber,function (data) {
+			 if (data.state == 200) {
+				 $scope.vehicleOtherInfo =data.messageBody.vehicleInfo; 
+				 var vehicleInfo = $scope.vehicleOtherInfo;
+				 var infoTemplate = new esri.InfoTemplate("" +
+			     			"<font style='font-weight:bold;font-size:18px;color:#000000;'>" +
+			     			"车牌号码：<label class='pn'>${plateNumber}</label></font><br/>" +
+			     			"<div style='height:1px; width:100%; background:#BABABA; overflow:hidden;'></div>",
+			     			"<p style='font-size:14px;color:#000000;'><font style='font-weight:bold;'>" +
+			     			"车辆类型：</font>"+vehicleInfo.vehicleType+"</br>" +
+			     			"<font style='font-weight:bold;'>所属企业：</font>"+vehicleInfo.ascriptionCompany+"</br>" +
+			     			"<font style='font-weight:bold;'>管理部门：</font>"+vehicleInfo.competentAuthority+"</br>" +
+			     			"<font style='font-weight:bold;'>车架号：</font>"+vehicleInfo.vehicleFrameNumber+"</br>" +
+			     			"<font style='font-weight:bold;'>车辆类别：</font>"+vehicleInfo.plateType+"</br>" +
+			     			"<font style='font-weight:bold;'>年审状态：</font>"+vehicleInfo.motTestState+"</br>" +
+			     			"<a class='accidentTotal'><font style='font-weight:bold;'>年度事故次数：</font>"+vehicleInfo.accidentTotal+"</a></br>" +
+			     			"<a class='illegalTotal'><font style='font-weight:bold;'>年度违法次数：</font>"+vehicleInfo.illegalTotal+"</a></br>" +
+			     			"<font style='font-weight:bold;'>预警类型：</font>"+$scope.convertWarningType(vehicleInfo.warningType)+"</br>" +
+			     			"<font style='font-weight:bold;'>最近预警时间：</font>"+$scope.convertWarningTime(vehicleInfo.warningEndTime)+
+			     			"</p>");
+				 e.graphic.setInfoTemplate(infoTemplate);
+			 }
+		 }, function (err) {
+		 });
+	 }
+	 
+	 //转换气泡中的最近预警时间
+	 $scope.convertWarningTime = function(warningEndTime){
+		 var endTime;
+		 if(warningEndTime != null){
+			 endTime = $filter("date")(warningEndTime.time, "yyyy-MM-dd HH:mm:ss");
+		 }else{
+			 endTime = "";
+		 }
+		 return endTime;
+	 }
+	 
+	 $scope.convertWarningType = function(warningType){
+		var realWarningType;
+		switch(warningType)
+     	{
+ 	    	case '1':
+ 	    		realWarningType = "违规路线行驶";
+ 	    		break;
+ 	    	case '2':
+ 	    		realWarningType = "违规时间行驶";
+ 	      	  	break;
+ 	    	case '3':
+ 	    		realWarningType = "超速行驶";
+ 	    		break;
+ 	    	case '4':
+ 	    		realWarningType = "疲劳驾驶";
+ 	    		break;
+ 	    	default:
+ 	    		realWarningType = "";
+				break;
+     	}
+		return realWarningType;
+	 }
+	 
+	 //统计车辆数据
+	 $scope.queryEarlyWarningInfoCounts = function(){
+		 mapService.queryEarlyWarningInfoCounts($scope.queryConditionData,function (data) {
+			 if (data.state == 200) {
+				 $scope.earlyWarningInfoCounts =data.messageBody.earlyWarningInfo; 
+			 }
+		 }, function (err) {
+		 });
+	 }
+	 
+	 //点击查询车辆历史轨迹
+     $scope.queryHistTra = function(){
+     	refresh = false;
+     	if(!hisRefresh){
+     		hisRefresh = true;
+     		$interval.cancel(realLocalRefresh);
+     		loadLocalTimes = 0;
+         	timeRefresh = setTimeout(function(){showLine(map);}, 1000, 1);
+     	}
+     }
+     
+     //清除所有车辆图层
+     $scope.hideAllGraphics = function(){
+    	 layerOfNew.setVisibility(false);
+ 		 layerOfDangerous.setVisibility(false);
+ 		 layerOfCold.setVisibility(false);
+ 		 layerOfOrdinary.setVisibility(false);
+ 		layerOfNewText.setVisibility(false);
+		 layerOfDangerousText.setVisibility(false);
+		 layerOfColdText.setVisibility(false);
+		 layerOfOrdinaryText.setVisibility(false);
+     }
+     
+     //显示所有车辆图层
+     $scope.showAllGraphics = function(){
+    	 layerOfNew.setVisibility(true);
+ 		 layerOfDangerous.setVisibility(true);
+ 		 layerOfCold.setVisibility(true);
+ 		 layerOfOrdinary.setVisibility(true);
+ 		layerOfNewText.setVisibility(true);
+		 layerOfDangerousText.setVisibility(true);
+		 layerOfColdText.setVisibility(true);
+		 layerOfOrdinaryText.setVisibility(true);
+     }
+     
+     //加点
+     function showLocation(x, y, pic,type,plateNumber) {  
+     	//创建图片样式符合
+     	var pt = new esri.geometry.Point(x,y);//创建一个点对象
+     	var attr = {"vehicleType":type,"plateNumber":plateNumber};
+     	map.infoWindow.resize(500,200);
+     	gra = new esri.Graphic(pt,pic,attr);//设置样式
+     	textgraph = new esri.Graphic(pt,new esri.symbol.TextSymbol(plateNumber).setOffset(20, 10));
+     	//把图层实例放入数组中以便后面有针对性的移除
+     	if(graps.length<=len){
+     		graps.push(gra);
+     		textgraphs.push(textgraph);
+     	}
+     	
+     	switch(type){
+     		case "新能源":
+	     		layerOfNew.add(gra);
+	     		layerOfNewText.add(textgraph);
+	     		break;
+     		case "危化品":
+	     		layerOfDangerous.add(gra);
+	     		layerOfDangerousText.add(textgraph);
+	     		break;
+     		case "冷链车":
+	     		layerOfCold.add(gra);
+	     		layerOfColdText.add(textgraph);
+	     		break;
+     		case "普通车":
+	     		layerOfOrdinary.add(gra);
+	     		layerOfOrdinaryText.add(textgraph);
+	     		break;
+     	}
+//     	$("#progressbar").attr("style","display:none");
+//     	$("#background_layer").hide();
+//     	$scope.hideAllGraphics();
+     };
+     
+     function showAlert(){
+    	 swal({
+             title: "车牌号码不能为空！",
+             type: "error",
+             timer: 2000,
+             confirmButtonText: "确定"
+         });
+     	}
+    
+   	//历史轨迹
+ 	function showLine(map){
+ 		 haveShowLine = true; //标记行驶轨迹已打开
+ 		 var hisLocations = $scope.hisLocations;	//包含车辆经纬度的字符串
+         var paths = [];
+         if(hisLocations.length > 0){
+         	for(var i = 0;i<showLineLength;i++){
+	           	var local = hisLocations[i].split("-");
+	           	var his = [];
+	           	his[0] = local[1]*1;
+	           	his[1] = local[0]*1;
+	           	paths.push(his);
+       		}
+         	showLineLength = showLineLength+2;
+         	if(showLineLength>hisLocations.length-2 & showLineLength<hisLocations.length){
+         		showLineLength = hisLocations.length;
+         	}
+         }
+		  	//在地图上连线
+		    polylineJson={"paths": [paths],"spatialReference":{"wkid":4326}}; 
+		    var graphicsLayer = new esri.layers.GraphicsLayer();//添加线的图层，方便清除上一个图层所画的线
+	    	map.graphics.clear();//清除地图上现有的点
+	    	map.removeLayer(graphicsLayer);//清除地图上的线
+		    var polyline=new esri.geometry.Polyline(polylineJson);
+		    var sys=new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID,new esri.Color([0,0,255]),3);
+		    var graphic2=new esri.Graphic(polyline,sys);
+		   	map.graphics.add(graphic2); 
+		   	
+		   	if(hisLocations.length > 0 ){
+		   		//前面+n，这里就要-(n-1)
+		   		var local = hisLocations[showLineLength-3].split("-");
+		   		if(local[2] == "新能源"){
+		   			var pic = new esri.symbol.PictureMarkerSymbol("assets/images/new-energy-vehicle.png",21,21);
+		   		}else if(local[2] == "危化品"){
+		   			var pic = new esri.symbol.PictureMarkerSymbol("assets/images/dangerous-goods-vehicle.png",21,21);
+		   		}else if(local[2] == "冷链车"){
+		   			var pic = new esri.symbol.PictureMarkerSymbol("assets/images/cold-chain-vehicle.png",21,21);
+		   		}else if(local[2] == "普通车"){
+		   			var pic = new esri.symbol.PictureMarkerSymbol("assets/images/ordinary-vehicle.png",21,21);
+		   		}
+		   		showLocation(local[1]*1,local[0]*1,local[2]*1,local[3]*1,pic);
+		   		
+		   		var centerPoint = new esri.geometry.Point(local[1]*1,local[0]*1);
+//			   	map.centerAndZoom(centerPoint,6);//内网地图缩放等级
+		   		map.centerAndZoom(centerPoint,12);
+		   	}
+		   	
+		   	//在地图上添加点
+		   	function showLocation(x, y, type, plateNumber, pic) {  
+		   		var pt = new esri.geometry.Point(x,y);//创建一个点对象
+		   		var attr = {"vehicleType":type,"plateNumber":plateNumber};
+		   		var infoTemplate = new esri.InfoTemplate("车牌号码：${plateNumber}","车辆类型：${vehicleType}");
+		   		var gp = new esri.Graphic(pt,pic,attr);//设置样式
+		   		map.graphics.add(gp);//添加到图层中        
+		   	};
+		   	if(hisRefresh){
+		   		//js控制ID为hisButton的按钮的点击
+		   		$("#hisButton").trigger("click"); 
+
+		   		if(showLineLength<=hisLocations.length){
+		   			showLineRefresh = $interval(function(){
+		   				showLine(map);
+		   			},1000,1);
+		   		}else{
+		   			showLineLength = 2;
+		   		}
+		   	}
+		   	
+ 	};
+ 	
+    accident = document.getElementById("accident");
+    illegal = document.getElementById("illegal");
+    document.onmouseup = function(){
+        document.onmousemove = null;//鼠标举起，停止
+    }
+    accident.onmousedown=function(e){
+        posX = event.x - accident.offsetLeft;//获得横坐标x
+        posY = event.y - accident.offsetTop;//获得纵坐标y
+        document.onmousemove = accidentMousemove;//调用函数，只要一直按着按钮就能一直调用
+    }
+    function accidentMousemove(ev){
+        if(ev==null) ev = window.event;//IE
+        accident.style.left = (ev.clientX - posX) + "px";
+        accident.style.top = (ev.clientY - posY) + "px";
+    }
+    illegal.onmousedown=function(e){
+        posX = event.x - illegal.offsetLeft;
+        posY = event.y - illegal.offsetTop;
+        document.onmousemove = illegalMousemove;
+    }
+    function illegalMousemove(ev){
+        if(ev==null) ev = window.event;//IE
+        illegal.style.left = (ev.clientX - posX) + "px";
+        illegal.style.top = (ev.clientY - posY) + "px";
+    }
+ 	
+ 	//气泡中事故次数点击事件
+ 	$("body").on("click","a.accidentTotal",function(){
+ 		$scope.queryConditionData.plateNumber = $("label.pn").text();
+ 		$scope.queryConditionData.requestType = "accident";
+ 		mapService.searchAccidentInfoNoPage($scope.queryConditionData,function (data) {
+			 if (data.state == 200) {
+				 $scope.accidentInfoList =data.messageBody.accidentInfoList; 
+				 $("#illegal").attr("style","display:none");
+				 $("#accident").attr("style","display:inline");
+			 }
+		 });
+ 	});
+ 	
+ 	//气泡中违法次数点击事件
+ 	$("body").on("click","a.illegalTotal",function(){
+ 		$scope.queryConditionData.plateNumber = $("label.pn").text();
+ 		$scope.queryConditionData.requestType = "illegal";
+ 		mapService.searchIllegalInfoNoPage($scope.queryConditionData,function (data) {
+			 if (data.state == 200) {
+				 $scope.illegalInfoList =data.messageBody.illegalInfoList; 
+				 $("#accident").attr("style","display:none");
+				 $("#illegal").attr("style","display:inline");
+			 }
+		 });
+ 	});
+    
+ 	$("#closeAccident").click(function(){
+    	$("#accident").attr("style","display:none");
+    	$scope.accidentInfoList = {};
+    });
+ 	
+ 	$("#closeIllegal").click(function(){
+    	$("#illegal").attr("style","display:none");
+    	$scope.illegalInfoList = {};
+    });
+ 	
+    //清除行驶轨迹还原地图
+    /*$scope.clearHisLine = function(){
+    	if(haveShowLine){
+			var graphicses = map.graphics.graphics;
+			for(var i=0;i<graphicses.length;i++){
+				if(graphicses[i].geometry.type=="polyline"){
+					map.graphics.remove(graphicses[i]);
+				}
+			}
+			clearTimeout(timeRefresh);
+			haveShowLine = false;
+	        $("#infoDiv").attr("style","display:inline");
+	    	$("#trajectoryDiv").attr("style","display:none");
+	    	$scope.query();
+		}
+    }*/
+    
+    //搜索车牌号码图标的点击事件
+    $("#plateNumberSelect").click(function(){
+    	$scope.queryConditionData.currentPage = 1;
+        if(layerOfOnVehicle!=null & layerOfOnVehicle!=undefined){
+        	map.removeLayer(layerOfOnVehicle);
+        }
+    	hisRefresh = false;
+    	if($scope.plateInfo.location == null){
+    		$scope.plateInfo.location = "A";
+    	}
+    	$scope.queryConditionData.onLineState = "";
+    	$scope.queryConditionData.plateType = "";
+    	$scope.queryConditionData.competentAuthority = "";
+    	$scope.queryConditionData.ascriptionCompany = "";
+    	$scope.queryFunction();
+    	
+		$("#oneWarningTotalDiv").hide();
+		$("#vehicleInfoDiv").attr("style","display:inline");
+		
+		//点击查询图标后把水滴标记去掉
+		if(singleCar != null && singleCar != ''){
+    		map.graphics.remove(singleCar);
+    	}
+		//$scope.clearHisLine();
+		//重新定位地图中心坐标及缩放大小
+		var pt = new esri.geometry.Point(104.0657754083, 30.6583098090);
+//		map.centerAndZoom(pt,10);
+		map.centerAndZoom(pt,4);
+		
+		if(globalPlateNumber!=null && globalPlateNumber!=""){
+		    //立即取消实时位置刷新
+		   	$interval.cancel(realLocalRefresh);
+		   	globalPlateNumber = "";
+		   	loadLocalTimes = 0;
+		}
+		$interval.cancel(driveInfoRefresh);
+		$scope.queryEarlyWarningInfoCounts();
+    });
+    
+    //根据分类筛选车辆
+    function filterVechleByTypes(selectOption){
+    	if(selectOption==''){
+    		layerOfNew.setVisibility(true);
+    		layerOfDangerous.setVisibility(true);
+    		layerOfCold.setVisibility(true);
+    		layerOfOrdinary.setVisibility(true);
+    	}else{
+			switch(selectOption)
+	    	{
+		    	case '新能源':
+		    		layerOfNew.setVisibility(true);
+		    		layerOfDangerous.setVisibility(false);
+		    		layerOfCold.setVisibility(false);
+		    		layerOfOrdinary.setVisibility(false);
+		    		break;
+		    	case '冷链车':
+		    		layerOfNew.setVisibility(false);
+		    		layerOfDangerous.setVisibility(true);
+		    		layerOfCold.setVisibility(false);
+		    		layerOfOrdinary.setVisibility(false);
+		      	  	break;
+		    	case '危化品':
+		    		layerOfNew.setVisibility(false);
+		    		layerOfDangerous.setVisibility(false);
+		    		layerOfCold.setVisibility(true);
+		    		layerOfOrdinary.setVisibility(false);
+		    		break;
+		    	case '普通车':
+		    		layerOfNew.setVisibility(false);
+		    		layerOfDangerous.setVisibility(false);
+		    		layerOfCold.setVisibility(false);
+		    		layerOfOrdinary.setVisibility(true);
+		    		break;
+	    	}
+    	}
+    }
+    
+    //每10秒刷新一次预警信息
+    warningRefresh = $interval(function(){
+    	$scope.queryWarningDisposalViewList();
+    },10000);
+    
+    //定时刷新车辆统计数据
+    totalCountsRefresh = $interval(function(){
+    	$scope.queryEarlyWarningInfoCounts();
+    },10000);
+    
+    //确保关闭页面或浏览器后销毁定时器
+    $scope.$on('$destroy',function(){  
+    	$("[name=新能源]:checkbox").prop("checked", false);
+		$("[name=冷链]:checkbox").prop("checked", false);
+		$("[name=危化品]:checkbox").prop("checked", false);
+		$("[name=普通]:checkbox").prop("checked", false);
+    	$interval.cancel(realLocalRefresh); 
+        loadLocalTimes = 0;
+        $interval.cancel(driveInfoRefresh); 
+        globalPlateNumber = null;
+        $interval.cancel(totalCountsRefresh);
+        $interval.cancel(warningRefresh);
+    })
+    
+    //取消预警方框
+    $("#cancleWarning").click(function(){
+    	$("#earlyWarningDisposalDiv").attr("style","display:none");
+    });
+    
+	//初始化查询条件
+    $scope.showMap();
+    $scope.queryEarlyWarningInfoCounts();
+	//$scope.query();
+	     
+} ]);
+
+//预警类型格式化
+app.filter('reverse', function() { //可以注入依赖
+    return function(text) {
+    	switch(text)
+    	{
+	    	case '1':
+	    		return "违规路线行驶";
+	    		break;
+	    	case '2':
+	    		return "违规时间行驶";
+	      	  	break;
+	    	case '3':
+	    		return "超速行驶";
+	    		break;
+	    	case '4':
+	    		return "疲劳驾驶";
+	    		break;
+    	}
+    }
+});
+
+//状态格式转化
+app.filter('chineseState', function() { 
+    return function(text) {
+		switch(text)
+		{
+			case 0:
+				return "离线";
+				break;
+			case 1:
+				return "在线";
+				break;
+		}
+    }
+});
+	
+
+
+
+ 
+  
+

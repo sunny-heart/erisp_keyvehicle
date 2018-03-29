@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.EarlyWarningInfoMapper">
+	<insert id="addEarlyWarningInfo" parameterType="com.gkhb.keyvehicle.model.EarlyWarningInfo">
+		INSERT INTO
+		KV_EARLY_WARNING_INFO(
+		ID,
+		VEHICLE_ID,
+		WARNING_TYPE,
+		WARNING_START_TIME,
+		WARNING_START_LOCATION,
+		WARNING_END_TIME,
+		WARNING_END_LOCATION,
+		STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{vehicleId},
+		#{warningType},
+		#{warningStartTime},
+		#{warningStartLocation},
+		#{warningEndTime},
+		#{warningEndLocation},
+		#{state}
+		)
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryEarlyWarningInfo" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		select * from
+		kv_early_warning_info
+	</select>
+
+	<!-- 根据预警id查询预警信息 -->
+	<select id="queryEarlyWarningInfoById" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM
+		KV_EARLY_WARNING_INFO WHERE ID = #{id}
+	</select>
+
+	<!-- 查询所有 -->
+	<select id="queryEarlyWarningInfoByVehicleIdAndWarningType"
+		resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM (
+		SELECT
+		*
+		FROM
+		KV_EARLY_WARNING_INFO
+		WHERE
+		VEHICLE_ID = #{vehicleId}
+		AND WARNING_TYPE = #{warningType}
+		ORDER BY
+		WARNING_END_TIME DESC
+		) WHERE ROWNUM = 1
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateEarlyWarningInfo" parameterType="com.gkhb.keyvehicle.model.EarlyWarningInfo">
+		UPDATE
+		KV_EARLY_WARNING_INFO SET
+		VEHICLE_ID=#{vehicleId},
+		WARNING_TYPE=#{warningType},
+		WARNING_START_TIME=#{warningStartTime},
+		WARNING_START_LOCATION=#{warningStartLocation},
+		WARNING_END_TIME=#{warningEndTime},
+		WARNING_END_LOCATION=#{warningEndLocation},
+		STATE=#{state}
+		WHERE
+		ID =
+		#{id}
+	</update>
+
+	<!-- 查车辆数及预警数 -->
+	<select id="queryEarlyWarningInfoCounts" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData"
+		resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		<!-- select (select count(1) vehicle_total from kv_vehicle_info kvi where 
+			kvi.state=0) vehicle_total, (select count(1) from kv_vehicle_online_state 
+			kvos where kvos.vehicle_state=1) current_online_total, (select sum(count(distinct 
+			kewi.vehicle_id)) warning_total from kv_early_warning_info kewi group by 
+			kewi.vehicle_id) warning_total, (select sum(count(distinct kewi.vehicle_id)) 
+			today_warning_total from kv_early_warning_info kewi where to_char(kewi.warning_start_time, 
+			'yyyy-mm-dd')=to_char(#{nowDate}, 'yyyy-mm-dd' ) group by kewi.vehicle_id) 
+			today_warning_total from dual -->
+		select
+		(select count(1) vehicle_total from kv_vehicle_info kvi where kvi.state=0
+		<include refid="vehicleType_filter"></include>
+		) vehicle_total,
+		(select count(1) from kv_vehicle_online_state kvos left join kv_vehicle_info
+		kvi on kvi.id=kvos.vehicle_id where kvos.vehicle_state=1
+		<include refid="vehicleType_filter"></include>
+		) current_online_total,
+		(select sum(count(distinct kewi.vehicle_id)) warning_total from
+		kv_early_warning_info kewi left join kv_vehicle_info kvi on
+		kvi.id=kewi.vehicle_id where 1=1
+		<include refid="vehicleType_filter"></include>
+		group by kewi.vehicle_id) warning_total,
+		(select sum(count(distinct kewi.vehicle_id)) today_warning_total from
+		kv_early_warning_info kewi left join kv_vehicle_info kvi on
+		kvi.id=kewi.vehicle_id where to_char(kewi.warning_start_time,
+		'yyyy-mm-dd')=to_char(#{queryConditionData.currentDate}, 'yyyy-mm-dd')
+		<include refid="vehicleType_filter"></include>
+		group by kewi.vehicle_id) today_warning_total
+		from dual
+	</select>
+
+	<sql id="vehicleType_filter">
+		<if
+			test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+			and ( 1=0
+			<if
+				test=" queryConditionData.newChecked != null and queryConditionData.newChecked !='' ">
+				or kvi.vehicle_type like
+				CONCAT(CONCAT('',#{queryConditionData.newChecked}),'%')
+			</if>
+			<if
+				test=" queryConditionData.dangerousChecked != null and queryConditionData.dangerousChecked !='' ">
+				or kvi.vehicle_type like
+				CONCAT(CONCAT('',#{queryConditionData.dangerousChecked}),'%')
+			</if>
+			<if
+				test=" queryConditionData.coldChecked != null and queryConditionData.coldChecked !='' ">
+				or kvi.vehicle_type like
+				CONCAT(CONCAT('',#{queryConditionData.coldChecked}),'%')
+			</if>
+			<if
+				test=" queryConditionData.ordinaryChecked != null and queryConditionData.ordinaryChecked !='' ">
+				or kvi.vehicle_type like
+				CONCAT(CONCAT('',#{queryConditionData.ordinaryChecked}),'%')
+			</if>
+			)
+		</if>
+	</sql>
+
+	<!-- 根据车辆ID查询最新一条预警信息 -->
+	<select id="queryEarlyWarningInfoByVehicleId" parameterType="java.lang.String"
+		resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM (
+		SELECT
+		*
+		FROM
+		KV_EARLY_WARNING_INFO
+		WHERE
+		VEHICLE_ID = #{vehicleId}
+		ORDER BY
+		WARNING_END_TIME DESC
+		) WHERE ROWNUM = 1
+	</select>
+
+</mapper>

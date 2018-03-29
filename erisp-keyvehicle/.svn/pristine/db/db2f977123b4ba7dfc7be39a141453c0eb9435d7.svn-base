@@ -1,0 +1,348 @@
+/**
+ * 车辆信息查询
+ */
+
+app.controller('warningDisposalWindowCtrl', ['$rootScope','$scope','$stateParams','$modalInstance','params','$state','$modal', '$log','$filter','SweetAlert','warningDisposalService','$interval','SweetAlert',
+  function($rootScope,$scope, $stateParams,$modalInstance, params,$state, $modal, $log,$filter,SweetAlert,warningDisposalService,$interval,SweetAlert) {
+    
+    $scope.disposalMethods = "处置";
+    $scope.hyDepartment = "一分局一大队";
+    $scope.disposalProcess = {};
+    $scope.plateNumber = params.plateNumber;//车牌号码
+//    $scope.vehicle = params.vehicle;//从接口传递过来的全部信息
+    $scope.earlyWarningInfo = params.warning;//预警信息
+    $scope.accidentTotal = params.accidentTotal;//事故次数
+    $scope.illegalTotal = params.illegalTotal;//违法次数
+    $scope.warningId;//预警Id
+    
+    $scope.vehicleInfo = {};
+//    console.log($scope.vehicleInfo);
+//    console.log($scope.earlyWarningInfo);
+    
+  //取消
+    $scope.cancel = function() {
+        $modalInstance.dismiss('cancel');
+    };
+	
+//    console.log($stateParams.plateNumber);
+    
+    //根据车牌号搜索
+		 $scope.queryVehicleInfoByPlateNumber = function(){
+			 warningDisposalService.queryVehicleInfoByPlateNumber($scope.plateNumber,function (data) {
+		            if (data.state == 200) {
+		            	console.log = data.messageBody.vehicleInfoList[0];
+		            	$scope.vehicleInfo = data.messageBody.vehicleInfoList[0];
+		            	switch($scope.earlyWarningInfo.warningType)
+		   		    	{
+		   			    	case '1':
+		   			    		$scope.earlyWarningInfo['warningTypeExplain']="违规路线行驶";
+		   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定路线行驶！";
+		   			    		break;
+		   			    	case '2':
+		   			    		$scope.earlyWarningInfo['warningTypeExplain']="违规时间行驶";
+//		   			    		var startDate = new Date().setTime(data.warningSet.driveStartDate.time);
+//		   			    		var endDate = new Date().setTime(data.warningSet.driveEndDate.time);
+//		   			    		var startTime = new Date().setTime(data.warningSet.driveStartTime.time);
+//		   			    		var endTime = new Date().setTime(data.warningSet.driveEndTime.time);
+//		   			        	var startDateAsString = $filter('date')(startDate, "yyyy年MM月dd日"); 
+//		   			        	var endDateAsString = $filter('date')(endDate, "yyyy年MM月dd日"); 
+//		   			        	var startTimeAsString = $filter('date')(startTime, "HH时mm分ss秒"); 
+//		   			        	var endTimeAsString = $filter('date')(endTime, "HH时mm分ss秒"); 
+//		   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定时间行驶,违规行驶开始日期：" + startDateAsString + "，结束日期：" + endDateAsString + "，每日违规行驶开始时间 ："+ startTimeAsString +"，每日结束时间："+ endTimeAsString +"！";
+		   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定时间行驶！";
+		   			      	  	break;
+		   			    	case '3':
+		   			    		$scope.earlyWarningInfo['warningTypeExplain']="超速行驶";
+		   			    		$scope.earlyWarningInfo.warningExplain="超速行驶";
+//		   			    		if(undefined == data.warningSet || data.warningSet == '' || data.warningSet == null){
+//		   			    			$scope.earlyWarningInfo['warningExplain'] = "超速行驶，当前时速" + data.earlyWarningInfo.speed + "公里/小时！";
+//		   			    		}else{
+//		   			    			$scope.earlyWarningInfo['warningExplain'] = "超速行驶，限速为" + data.warningSet.highSpeed + "公里/小时，当前时速" + data.earlyWarningInfo.speed + "公里/小时！";
+//		   			    		}
+		   			    		break;
+		   			    	case '4':
+		   			    		$scope.earlyWarningInfo['warningTypeExplain']="疲劳驾驶";
+		   			    		$scope.earlyWarningInfo['warningExplain'] = "连续行驶4小时以上未进行20分钟休息！";
+		   			    		break;
+		   		    	}
+		            	var date = new Date().setTime($scope.earlyWarningInfo.warningStartTime);
+		   		    	var dateAsString = $filter('date')(date, "yyyy年MM月dd日 HH时mm分ss秒"); 
+		   		    	$scope.disposalRules = dateAsString + $scope.vehicleInfo.vehicleType + $scope.vehicleInfo.plateNumber + $scope.earlyWarningInfo.warningExplain;
+		            }
+		        }, function (err) {
+		        })
+		    }	
+    
+  //根据预警Id查询预警处置信息，预警信息，车辆信息
+//    $scope.queryOneWarningDisposalInfo = function () {
+//    	if(null == $scope.warningId || "" == $scope.warningId){
+//    		 $modalInstance.dismiss('cancel');
+//    		SweetAlert.swal("", "该车辆没有预警信息！", "warning");
+//    	}else{
+//    		warningDisposalService.queryOneWarningDisposalInfo($scope.warningId,function (data) {
+//   			 if (data.state == 200) {
+   				//预警处置视图信息
+//   				$scope.warningDisposalView = data.messageBody.queryOneWarningDisposalInfo;
+//   				data = $scope.warningDisposalView;
+//   				console.log($scope.warningDisposalView);
+   				//处置流程信息
+//   		    	$scope.disposalProcess = $scope.warningDisposalView.disposalProcess;
+//   		    	var result = $scope.disposalProcess.jgDisposalInstructions;
+   		    	//预警信息
+//   		    	$scope.earlyWarningInfo = $scope.warningDisposalView.earlyWarningInfo;
+   		    	//年度事故次数
+//   		    	$scope.accidentTotal = data.accidentTotal;
+   		    	//年度违法次数
+//   		    	$scope.illegalTotal = data.illegalTotal;
+   		    	//预警事件、预警说明格式化
+//   		    	switch($scope.earlyWarningInfo.warningType)
+//   		    	{
+//   			    	case '1':
+//   			    		$scope.earlyWarningInfo['warningTypeExplain']="违规路线行驶";
+//   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定路线行驶！";
+//   			    		break;
+//   			    	case '2':
+//   			    		$scope.earlyWarningInfo['warningTypeExplain']="违规时间行驶";
+////   			    		var startDate = new Date().setTime(data.warningSet.driveStartDate.time);
+////   			    		var endDate = new Date().setTime(data.warningSet.driveEndDate.time);
+////   			    		var startTime = new Date().setTime(data.warningSet.driveStartTime.time);
+////   			    		var endTime = new Date().setTime(data.warningSet.driveEndTime.time);
+////   			        	var startDateAsString = $filter('date')(startDate, "yyyy年MM月dd日"); 
+////   			        	var endDateAsString = $filter('date')(endDate, "yyyy年MM月dd日"); 
+////   			        	var startTimeAsString = $filter('date')(startTime, "HH时mm分ss秒"); 
+////   			        	var endTimeAsString = $filter('date')(endTime, "HH时mm分ss秒"); 
+////   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定时间行驶,违规行驶开始日期：" + startDateAsString + "，结束日期：" + endDateAsString + "，每日违规行驶开始时间 ："+ startTimeAsString +"，每日结束时间："+ endTimeAsString +"！";
+//   			    		$scope.earlyWarningInfo['warningExplain'] = "不按照规定时间行驶！";
+//   			      	  	break;
+//   			    	case '3':
+//   			    		$scope.earlyWarningInfo['warningTypeExplain']="超速行驶";
+////   			    		if(undefined == data.warningSet || data.warningSet == '' || data.warningSet == null){
+////   			    			$scope.earlyWarningInfo['warningExplain'] = "超速行驶，当前时速" + data.earlyWarningInfo.speed + "公里/小时！";
+////   			    		}else{
+////   			    			$scope.earlyWarningInfo['warningExplain'] = "超速行驶，限速为" + data.warningSet.highSpeed + "公里/小时，当前时速" + data.earlyWarningInfo.speed + "公里/小时！";
+////   			    		}
+//   			    		break;
+//   			    	case '4':
+//   			    		$scope.earlyWarningInfo['warningTypeExplain']="疲劳驾驶";
+//   			    		$scope.earlyWarningInfo['warningExplain'] = "连续行驶4小时以上未进行20分钟休息！";
+//   			    		break;
+//   		    	}
+   		    	//车辆信息
+//   		    	$scope.vehicleInfo = $scope.warningDisposalView.vehicleInfo;
+//   		    	$scope.vehicleInfo['vehicleKind'] = "物流车";
+//   		    	console.log($scope.vehicleInfo);
+   		    	
+//   		    	if(data.vehicleInfo.motTestDate!=null){
+//   		    		var currentYear = new Date();
+//   		    		//注册日期
+//   		    		var rd = new Date().setTime(data.vehicleInfo.registrationDate.time);
+//   		    		//最近年审日期
+//   		    		var nmtd = new Date().setTime(data.vehicleInfo.motTestDate.time);
+//   		    		var newmtd = new Date($filter('date')(nmtd, "yyyy-MM-dd"));
+//   		    		//去年年审最后期限
+//   		        	var lastmtd = new Date((currentYear.getFullYear()-1)+"-"+$filter('date')(rd, "MM-dd")); 
+//   		        	if(lastmtd>=newmtd){
+//   		        		$scope.vehicleInfo['motTestState'] = "未年审";
+//   		        	}else{
+//   		        		$scope.vehicleInfo['motTestState'] = "正常";
+//   		        	}
+//   		    	}else{
+//   		    		$scope.vehicleInfo['motTestState'] = "正常";
+//   		    	}
+   		    	
+   		    	//处置细则
+//   		    	var date = new Date().setTime($scope.earlyWarningInfo.warningStartTime);
+//   		    	var dateAsString = $filter('date')(date, "yyyy年MM月dd日 HH时mm分ss秒"); 
+//   		    	$scope.disposalRules = dateAsString + $scope.vehicleInfo.vehicleType + $scope.vehicleInfo.plateNumber + $scope.earlyWarningInfo.warningExplain;
+//   			 }else{
+//   				 $modalInstance.dismiss('cancel');
+//   			 }
+//   		 }, function (err) {
+//   			 $modalInstance.dismiss('cancel');
+//   		 })
+//    	}
+//    };
+   		    	
+   		      	
+    
+    //修改预警处置流程
+    $scope.updateDisposalProcess = function () {
+    	// 设置处置时间
+//		$scope.disposalProcess['jgDisposalTime'] = new Date();
+		$scope.disposalProcess['jgDisposalTime'] = $filter('date')(new Date(), "yyyy-MM-dd HH:mm:ss");
+		// 设置处理人
+//		$scope.disposalProcess['jgUserId'] = "1";
+		$scope.disposalProcess['jgUserId'] = $rootScope.fstrName;
+    	var jgDisposalInstructions = "";
+    	switch($scope.disposalMethods)
+    	{
+	    	case '忽略':
+	    		// 获取处置原因
+	    		if($("#wrong").is(':checked')){
+	    			jgDisposalInstructions += $("#wrong").val();
+	    		}
+	    		if($("#repeat").is(':checked')){
+	    			jgDisposalInstructions += ",";
+	    			jgDisposalInstructions += $("#repeat").val();
+	    		}
+	    		// 设置处置原因
+	    		$scope.disposalProcess['jgDisposalInstructions'] = $scope.disposalMethods + ",原因： " + jgDisposalInstructions;
+	    		// 设置处置流程状态为结束
+	    		$scope.disposalProcess['state'] = 1;
+	    		break;
+	    	case '处置':
+	    		// 设置下发部门
+	    		$scope.disposalProcess['hyDepartment'] = $scope.hyDepartment;
+//	    		$scope.disposalProcess['jgDisposalInstructions'] = $scope.disposalMethods + ",下发部门： " + $scope.hyDepartment;
+	    		$scope.disposalProcess['jgDisposalInstructions'] = $scope.disposalMethods;
+	      	  	break;
+    	}
+    	$scope.disposalProcess.jgDisposalTime;//处置时间
+    	$scope.disposalProcess.jgUserId;//处置人id
+    	$scope.disposalProcess.jgDisposalInstructions;//处置方式
+    	$scope.disposalRules;//处置细则
+    	$scope.warningId;//预警id
+    	
+    	warningDisposalService.updateDisposalProcess($scope.disposalProcess,function (data) {
+			 if (data.state == 200) {
+//				 if($("#sendsms").is(":checked")){
+//					 var smsText = $scope.hyDepartment+":"+$("#rules").val()+"请及时处理！";
+//	            	 var smsMob = "";
+//	            	 $scope.sendSMS(smsText,smsMob);
+//				 }
+				 SweetAlert.swal("", "处置成功", "success");
+				 // 初始化页面
+				 $scope.disposalProcess = {};
+				 $scope.earlyWarningInfo = {};
+				 $scope.vehicleInfo = {};
+				 $scope.disposalRules = "";
+				 $scope.disposalMethods = "处置";
+//				 $scope.hyDepartment = "一分局一大队";
+//				 $scope.hyDepartment = $rootScope.depName + $rootScope.groupName;
+				 $("#repeat").checked=false;
+				 $("#wrong").checked=false;
+//            	 $scope.queryWarningDisposalViewList();
+			 }else{
+				 SweetAlert.swal("", "处置失败", "warning");
+			 }
+		 }, function (err) {
+			 SweetAlert.swal("", "处置失败", "warning");
+		 })
+		 $modalInstance.dismiss('cancel'); 
+    };
+    
+//    $scope.sendSMS = function(smsText,smsMob){
+//    	$scope.queryConditionData['smsText'] = smsText;
+//    	$scope.queryConditionData['smsMob'] = smsMob;
+//    	smsService.sendSMS($scope.queryConditionData,function (data) {
+//    	}, function (err) {
+//		})
+//    }
+    
+    //进页面时默认加载
+//    $scope.queryWarningDisposalViewList();
+//    $scope.queryOneWarningDisposalInfo();
+    $scope.queryVehicleInfoByPlateNumber();
+    
+    //查看车辆图片
+    $scope.showVehiclePicture = function(data) {
+    	if(data==undefined){return false;}
+        $scope.temp = {
+            'vehicleInfo':data
+        };
+        var modalInstance = $modal.open({
+            templateUrl : 'assets/views/warningDisposal/vehiclePicture.html',
+            controller : 'showVehiclePictureController',
+            backdrop: 'static',
+            keyboard: false,
+            size : 'lg',
+            resolve : {
+                params : function() {
+                    return $scope.temp;
+                }
+            }
+        });
+        modalInstance.result.then(function(result) {
+            if(result == null){
+                SweetAlert.swal({
+                    title: "无数据",
+                    timer: 2000,
+                    confirmButtonText: "确定"
+                });
+            }
+        }, function(err) {
+        });
+    };
+    
+//    	require([  
+//            "esri/map", 
+//            "esri/layers/ArcGISTiledMapServiceLayer", 
+//            "esri/graphic"  
+//        ], function(
+//        		Map, 
+//        		ArcGISTiledMapServiceLayer, 
+//        		Graphic) {  
+//   		var BASE_SERVER = 'http://server.arcgisonline.com/arcgis/rest/services/World_Topo_Map/MapServer';
+//            var map = new Map("map", {  
+//                center: [104.0657754083, 30.6583098090],  
+//                zoom: 14,
+//                logo:false,
+//                nav:false,
+//                slider:false
+//            }); 
+//    		var layer = new ArcGISTiledMapServiceLayer(BASE_SERVER);
+//            map.addLayer(layer);
+//        });   
+	
+}]);
+
+//预警类型格式化
+app.filter('reverse', function() { //可以注入依赖
+    return function(text) {
+    	switch(text)
+    	{
+	    	case '1':
+	    		return "违规路线行驶";
+	    		break;
+	    	case '2':
+	    		return "违规时间行驶";
+	      	  	break;
+	    	case '3':
+	    		return "超速行驶";
+	    		break;
+	    	case '4':
+	    		return "疲劳驾驶";
+	    		break;
+    	}
+    }
+});
+
+//预警内容车牌号说明
+app.filter('noteOfPlateNumber', function() { //可以注入依赖
+    return function(text) {
+    	if(text!=null && text!=undefined){
+//    		return "车牌号为【"+text+"】的";
+    		return "车牌号为【"+text+"】";
+    	}
+    }
+});
+
+//预警内容预警地点说明
+app.filter('noteOfPlace', function() { //可以注入依赖
+    return function(text) {
+    	if(text!=null && text!=undefined){
+    		return "车辆在"+text;
+    	}
+    }
+});
+
+//设置默认车辆图片
+app.filter('defaultPic', function() { //可以注入依赖
+    return function(text) {
+    	if(text==null || text==undefined || text==''){
+    		return "assets/images/plate_none.png";
+    	}else{
+    		return text;
+    	}
+    }
+});

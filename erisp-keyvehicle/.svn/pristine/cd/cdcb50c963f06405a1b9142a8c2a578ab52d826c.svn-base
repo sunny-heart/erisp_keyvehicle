@@ -1,0 +1,58 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.EarlyWarningInfoView;
+import com.gkhb.keyvehicle.service.EarlyWarningInfoService;
+
+/**
+ * 预警信息控制器类
+ * 
+ */
+@Controller
+@RequestMapping(("/earlyWarningInfo"))
+public class EarlyWarningInfoController {
+
+    @Autowired
+    EarlyWarningInfoService earlyWarningInfoService;
+
+    /**
+     * 查车辆数及预警数
+     * 
+     * @return Model 返回类型
+     */
+    @RequestMapping(value = "/queryEarlyWarningInfoCounts", method = RequestMethod.GET)
+    public Model queryEarlyWarningInfoCounts(QueryConditionData queryConditionData) {
+        Model model = new ExtendedModelMap();
+        if(queryConditionData.getNewChecked()!=null || queryConditionData.getDangerousChecked()!=null
+        		|| queryConditionData.getColdChecked()!=null || queryConditionData.getOrdinaryChecked()!=null){
+        	queryConditionData.setVehicleType("typeChecked");
+        }else{
+        	queryConditionData.setVehicleType(null);
+        }
+        Date nowDate = new Date();
+        queryConditionData.setCurrentDate(nowDate);
+        EarlyWarningInfoView earlyWarningInfo = earlyWarningInfoService.queryEarlyWarningInfoCounts(queryConditionData);
+        double onlineRate = 0;
+        double warningRate = 0;
+        if(earlyWarningInfo.getVehicleTotal()!=0){
+        	onlineRate = (double)earlyWarningInfo.getCurrentOnlineTotal()/earlyWarningInfo.getVehicleTotal();
+        }
+        if(earlyWarningInfo.getTodayWarningTotal()!=0){
+        	warningRate = (double)earlyWarningInfo.getTodayWarningTotal()/earlyWarningInfo.getTodayWarningTotal();
+        }
+        earlyWarningInfo.setCurrentOnlineRate(onlineRate*100);
+        earlyWarningInfo.setTodayWarningRate(warningRate*100);
+        model.addAttribute("earlyWarningInfo", earlyWarningInfo);
+        return model;
+    }
+    
+}

@@ -1,0 +1,34 @@
+<div ng-controller="realLineMapCtrl">
+	<div class="modal-header" style="height:50px;">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel(hisParams)">返回</button>
+		<h3 class="modal-title" style="color: #000000 !important;font-size:18px;">实时轨迹</h3>
+	</div>
+	<div class="modal-body">
+		<div id="map" style="position:relative;height:800px;">
+		</div>
+	</div>
+	<div style="z-index:100;text-align:left;position:absolute;bottom: 15%;float: left;">
+		<div class="col-md-2" style="margin-bottom: -2%;">
+			<input type="image"  ng-show="showAllTypeIco" ng-click="toUpDown(!showAllTypeIco,'down')" ng-src="assets/images/to_down_ico.png" class="to_up_down"">
+		</div><br>
+		<div ng-show="showAllTypeIco" style="border: 1px solid;border-color: #6f90b4;" class="white col-md-10 font_black_famil bg">
+			<img src="assets/images/new-energy-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;新能源物流车<br>
+			<img src="assets/images/dangerous-goods-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;危险品物流车<br>
+			<img src="assets/images/cold-chain-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;冷链物流车<br>
+			<img src="assets/images/ordinary-vehicle-online-90.png" style="margin-left:10px;width:35px;height:35px;font-size:14px;">&nbsp;&nbsp;普通物流车&nbsp;&nbsp;
+		</div>
+		<input type="image" ng-show="!showAllTypeIco"  ng-click="toUpDown(!showAllTypeIco,'down')" ng-src="assets/images/to_up_ico.png" class="to_up_down" style="position:absolute;margin-top:2%;bottom: 8%;"> 
+	</div>
+</div>
+
+
+
+
+
+
+
+
+
+	
+
+

@@ -1,0 +1,283 @@
+/**
+ * 预警规则设置
+ */
+app.controller('warningRuleController',['$rootScope','$scope','$state','$modal','SweetAlert',"$http", "$stateParams",
+function($rootScope, $scope, $state, $modal, SweetAlert, $http, $stateParams) {
+    $scope.ruleData = {
+        rule : []
+    };
+
+	$(".form_datetime").datetimepicker({
+		lang : 'ch',
+		formatDate : 'h',
+		minView : 'day',
+		maxView : 'day'
+	});
+
+    /**
+     * 加载数据
+     * @param param
+     * @param isAsync
+     */
+	$scope.loadList = function (param, isAsync) {
+        if (isAsync) {
+            var dataUrl = "/erisp-keyvehicle/service/warningRule/queryWarningRuleList";
+            $.ajax({
+                url : dataUrl,
+                method : 'GET',
+                data : param,
+                dataType : 'json',
+                contentType : "application/x-www-form-urlencoded;charset=UTF-8",
+                async : false,
+                success : function (data) {
+                    if(data.state==200 && data.messageBody.warningRuleList.length >= 1){
+                        $scope.warningRuleList = data.messageBody.warningRuleList;
+                    }
+                },
+                error : function (data) {
+
+                }
+            });
+        } else {
+            var dataUrl = "/erisp-keyvehicle/service/warningRule/queryWarningRuleList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : param
+            }).success(function(data) {
+                $scope.warningRuleList = data.messageBody.warningRuleList;
+            }).error(function(data) {
+            });
+        }
+    };
+
+    /**
+     * 页面回显绑定数据
+     */
+	$scope.loadRuleData = function () {
+        var id = $stateParams.id;
+        if (id != undefined && id != null && id != '') {
+            $scope.loadList({id : id}, true);
+            var ruleData =  $scope.warningRuleList[0];
+            $.extend($scope.ruleData, ruleData);
+            delete $scope.ruleData.createTime;
+            delete $scope.ruleData.updateTime;
+            $scope.ruleData.rule = JSON.parse($scope.ruleData.rule);
+            $("#speedRuleId").val(ruleData.id);
+            $("input[name=ruleName]").val(ruleData.name);
+            $("[name=vehicleType]").val(ruleData.vehicleType);
+            $("[name=ruleType]").val(ruleData.ruleType);
+
+            if (ruleData.ruleType == "SPEED") { //速度预警
+                var rules = JSON.parse(ruleData.rule);
+                for (var i =0; i< rules.length; i++){
+                    var rule = rules[i];
+                    if (rule.roadName == '三环') {
+                        $("input[name=third]").val(rule.speed);
+                    } else if (rule.roadName == '四环') {
+                        $("input[name=fourth]").val(rule.speed);
+                    } else if (rule.roadName == '其他') {
+                        $("input[name=fifth]").val(rule.speed);
+                    }
+                }
+            }
+        }
+        $stateParams.id = null;
+    };
+
+	$scope.carTypeList = [{
+	    id : 'ALL',
+        name : '全部'
+    }, {
+        id : 'A1',
+		name : '物流车'
+	}, {
+        id : 'A2',
+		name : '公交车'
+	}, {
+        id : 'A3',
+		name : '出租车'
+	}, {
+        id : 'A4',
+        name : '运渣车'
+    }, {
+        id : 'A5',
+        name : '危险品车'
+    }, {
+        id : 'A6',
+        name : '冷链车'
+    }  ];
+	
+	/*$scope.warningRuleList = [{
+		sort : 1,
+		name : '物流车限速预警',
+		type : '速度预警',
+		carType : '物流车'
+	},{
+		sort : 2,
+		name : '运渣车白天禁止进入三环内',
+		type : '时间位置预警',
+		carType : '运渣车'
+	},{
+		sort : 3,
+		name : '运渣车白天禁止进入三环内',
+		type : '时间位置预警',
+		carType : '运渣车'
+	}];*/
+
+
+    /**
+     * 保存速度预警
+     */
+	$scope.saveSpeedRule = function () {
+        $scope.ruleData.id = $("#speedRuleId").val();
+		$scope.ruleData.name = $("input[name=ruleName]").val();
+		$scope.ruleData.vehicleType = $("[name=vehicleType]").val();
+		$scope.ruleData.ruleType = $("[name=ruleType]").val();
+		$scope.ruleData.rule = JSON.stringify([{
+			'roadName' : '三环',
+			'speed' : $("input[name=third]").val()
+		},{
+            'roadName' : '四环',
+            'speed' : $("input[name=fourth]").val()
+        },{
+            'roadName' : '其他',
+            'speed' : $("input[name=fifth]").val()
+        }]);
+        var dataUrl = null;
+        if ($scope.ruleData.id == null || $scope.ruleData.id == ''){
+            dataUrl = "/erisp-keyvehicle/service/warningRule/addSpeedRule";
+		} else {
+            dataUrl = "/erisp-keyvehicle/service/warningRule/updateRule";
+		}
+
+        $.ajax({
+			url : dataUrl,
+			method : 'POST',
+			data : $scope.ruleData,
+			dataType : 'json',
+            contentType : "application/x-www-form-urlencoded;charset=UTF-8",
+			success : function (data) {
+                if(data.state==200 && data.messageBody.result==1){
+					$("#speedRuleId").val(data.messageBody.id);
+                    $state.go("app.warningRule.ruleQuery");
+                };
+            },
+			error : function (data) {
+                alert('保存规则失败！')
+            }
+		})
+    };
+
+    /**
+     * 保存疲劳预警
+     */
+	$scope.saveTiredRule = function () {
+        var ruleDate = {};
+        $.extend(ruleDate, $scope.ruleData);
+        ruleDate.rule = JSON.stringify(ruleDate.rule);
+        var dataUrl = null;
+        if ($scope.ruleData.id == null || $scope.ruleData.id == ''){
+            dataUrl = "/erisp-keyvehicle/service/warningRule/addTiredRule";
+        } else {
+            dataUrl = "/erisp-keyvehicle/service/warningRule/updateRule";
+        }
+        $.ajax({
+            url : dataUrl,
+            method : 'POST',
+            data : ruleDate,
+            dataType : 'json',
+            contentType : "application/x-www-form-urlencoded;charset=UTF-8",
+            async : false,
+            success : function (data) {
+                if(data.state==200 && data.messageBody.result==1){
+                    $("#speedRuleId").val(data.messageBody.id);
+                    $state.go("app.warningRule.ruleQuery");
+                };
+            },
+            error : function (data) {
+                alert('保存规则失败！')
+            }
+        });
+    };
+
+	$scope.saveTimeAreaRule = function () {
+        var ruleDate = {};
+        $.extend(ruleDate, $scope.ruleData);
+        ruleDate.rule = JSON.stringify(ruleDate.rule);
+        var dataUrl = null;
+        if ($scope.ruleData.id == null || $scope.ruleData.id == ''){
+            dataUrl = "/erisp-keyvehicle/service/warningRule/addTimeAreaRule";
+        } else {
+            dataUrl = "/erisp-keyvehicle/service/warningRule/updateRule";
+        }
+        $.ajax({
+            url : dataUrl,
+            method : 'POST',
+            data : ruleDate,
+            dataType : 'json',
+            contentType : "application/x-www-form-urlencoded;charset=UTF-8",
+            async : false,
+            success : function (data) {
+                if(data.state==200 && data.messageBody.result==1){
+                    $("#speedRuleId").val(data.messageBody.id);
+                    $state.go("app.warningRule.ruleQuery");
+                };
+            },
+            error : function (data) {
+                alert('保存规则失败！')
+            }
+        });
+    };
+    /**
+     * 列表页跳转至规则录入页
+     * @param id
+     * @param ruleType
+     */
+    $scope.location2Update = function (id, ruleType) {
+        var path = null;
+        if (ruleType == 'SPEED') {
+        	path = 'app.warningRule.ruleSpeedAdd';
+		} else if(ruleType == 'TIRED') {
+            path = 'app.warningRule.ruleTiredAdd';
+        } else if(ruleType == 'TIME_AREA'){
+            path = 'app.warningRule.ruleTimeAreaAdd'
+        }
+        $state.go(path,{id : id});
+    };
+
+    /**
+     * 删除规则
+     *
+     * @param id
+     * @param ruleType
+     */
+    $scope.deleteRule = function (id, ruleType) {
+        $.ajax({
+            url : "/erisp-keyvehicle/service/warningRule/deleteWarningRule",
+            method : 'POST',
+            data : {
+                id : id,
+                ruleType : ruleType
+            },
+            dataType : 'json',
+            contentType : "application/x-www-form-urlencoded;charset=UTF-8",
+            async : false,
+            success : function (data) {
+                if(data.state==200 && data.messageBody.result==1){
+                    $("#speedRuleId").val(data.messageBody.id);
+                };
+            },
+            error : function (data) {
+                alert('删除规则失败！')
+            }
+        });
+        $scope.loadList()
+    };
+
+    $scope.notAllPoint = function (element) {
+       /* if(! /^\d+$/.test($(element).val())){
+            $(element).val('');
+        }*/
+    }
+} ]);

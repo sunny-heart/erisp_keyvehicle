@@ -1,0 +1,229 @@
+package com.gkhb.keyvehicle.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.mapper.DisposalProcessMapper;
+import com.gkhb.keyvehicle.mapper.EarlyWarningInfoMapper;
+import com.gkhb.keyvehicle.mapper.FatigueDrivingMapper;
+import com.gkhb.keyvehicle.mapper.SpeedMapper;
+import com.gkhb.keyvehicle.mapper.TravelRouteMapper;
+import com.gkhb.keyvehicle.mapper.TravelTimeMapper;
+import com.gkhb.keyvehicle.mapper.VehicleInfoMapper;
+import com.gkhb.keyvehicle.model.DisposalEntry;
+import com.gkhb.keyvehicle.model.DisposalProcess;
+import com.gkhb.keyvehicle.model.EarlyWarningInfo;
+import com.gkhb.keyvehicle.model.FatigueDriving;
+import com.gkhb.keyvehicle.model.Speed;
+import com.gkhb.keyvehicle.model.TravelRoute;
+import com.gkhb.keyvehicle.model.TravelTime;
+import com.gkhb.keyvehicle.model.VehicleInfo;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.WarningDisposalView;
+
+/**
+ * 预警处置服务实现类
+ * 
+ * @author 张顺江
+ * @createTime 2017年9月10日 下午11:44:07
+ */
+@Service("warningDisposalService")
+public class WarningDisposalServiceImpl implements WarningDisposalService {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(WarningDisposalServiceImpl.class);
+
+    @Autowired
+    DisposalProcessMapper disposalProcessMapper;
+    @Autowired
+    EarlyWarningInfoMapper earlyWarningInfoMapper;
+    @Autowired
+    VehicleInfoMapper vehicleInfoMapper;
+    @Autowired
+    TravelRouteMapper travelRouteMapper;
+    @Autowired
+    TravelTimeMapper travelTimeMapper;
+    @Autowired
+    SpeedMapper speedMapper;
+    @Autowired
+    FatigueDrivingMapper fatigueDrivingMapper;
+
+    @Override
+    public List<WarningDisposalView> queryDisposalProcess(QueryConditionData queryConditionData,Page page) {
+        List<WarningDisposalView> warningDisposalViewList = new ArrayList<WarningDisposalView>();
+
+        List<DisposalProcess> disposalProcessList = null;
+        // 根据用户类型查询其下预警处置信息
+//        switch (userType) {
+//        case "1":
+//            disposalProcessList = disposalProcessMapper.queryJGJBMDisposalProcess(department, page);
+//            break;
+//        case "2":
+//            disposalProcessList = disposalProcessMapper.queryHYBMDisposalProcess(department, page);
+//            break;
+//        }
+        disposalProcessList = disposalProcessMapper.queryDisposalByVehicleInfo(queryConditionData,page);
+        
+
+		if (disposalProcessList != null && disposalProcessList.size() > 0) {
+			for (DisposalProcess disposalProcess : disposalProcessList) {
+				// 查询预警信息
+				queryConditionData.setId(disposalProcess.getWarningId());
+				EarlyWarningInfo earlyWarningInfo = earlyWarningInfoMapper
+						.queryEarlyWarningInfoByPlateNumber(queryConditionData);
+				if (null != earlyWarningInfo && !"".equals(earlyWarningInfo)) {
+					// 查询车辆信息
+					if(queryConditionData.getPlateNumber() != null && !"".equals(queryConditionData.getPlateNumber())){
+						queryConditionData.setPlate(queryConditionData.getPlateNumber());
+					}else{
+						String plateNumber = earlyWarningInfo.getPlateNumber();
+						queryConditionData.setPlate(plateNumber);
+					}
+					VehicleInfo vehicleInfo = vehicleInfoMapper
+							.queryVehicleInfoByPlateNumber(queryConditionData);
+					// WarningDisposalView warningDisposalView = new
+					// WarningDisposalView();
+					if (null != vehicleInfo && !"".equals(vehicleInfo)) {
+						if (queryConditionData.getVehicleType() != null && !queryConditionData.getVehicleType().equals("")
+								&& !queryConditionData.getVehicleType().equals(vehicleInfo.getVehicleType())) {
+							continue;
+						} else {
+							WarningDisposalView warningDisposalView = new WarningDisposalView();
+							Integer accidentTotal = vehicleInfoMapper
+									.countAccidentTotalByPlateNumber(vehicleInfo.getPlateNumber());
+							Integer illegalTotal = vehicleInfoMapper
+									.countIllegalTotalByPlateNumber(vehicleInfo.getPlateNumber());
+							warningDisposalView.setDisposalProcess(disposalProcess);
+							warningDisposalView.setVehicleInfo(vehicleInfo);
+							warningDisposalView.setAccidentTotal(accidentTotal != null ? accidentTotal.intValue() : 0);
+							warningDisposalView.setIllegalTotal(illegalTotal != null ? illegalTotal.intValue() : 0);
+							warningDisposalView.setEarlyWarningInfo(earlyWarningInfo);
+							warningDisposalViewList.add(warningDisposalView);
+						}
+					}
+				}
+			}
+		}
+        return warningDisposalViewList;
+    }
+
+    /**
+     * 获取预警设置信息
+     * 
+     * @param warningType 预警类型
+     * @param warningSetId 预警设置id
+     * @return Object
+     */
+    private Object getWarningSet(String warningType, String warningSetId) {
+        Object obj = null;
+        switch (warningType) {
+          //违规路线
+        case "1":
+            TravelRoute travelRoute = travelRouteMapper.queryTravelRouteById(warningSetId);
+            obj = travelRoute;
+            break;
+          //违规时间  
+        case "2":
+            TravelTime travelTime = travelTimeMapper.queryTravelTimeById(warningSetId);
+            obj = travelTime;
+            break;
+          //超速行驶
+        case "3":
+            Speed speed = speedMapper.querySpeedById(warningSetId);
+            obj = speed;
+            break;
+          //疲劳驾驶
+        case "4":
+            FatigueDriving fatigueDriving = fatigueDrivingMapper.queryFatigueDrivingById(warningSetId);
+            obj = fatigueDriving;
+            break;
+        }
+        return obj;
+    }
+
+    /**
+     * 更新预警处置流程
+     */
+    @Override
+    public boolean updateDisposalProcess(DisposalProcess disposalProcess) {
+        int count = 0;
+        if(disposalProcess !=null){
+           count = disposalProcessMapper.updateDisposalProcess(disposalProcess);
+        }
+        return count > 0 ? true : false;
+    }
+    
+    /**
+	 * 更新处置录入流程
+	 */
+	@Override
+	public boolean updateDisposalEntry(DisposalEntry disposalEntry) {
+		int count = 0;
+    	if(disposalEntry !=null){
+    		count = disposalProcessMapper.updateDisposalEntry(disposalEntry);
+    	}
+    	return count > 0 ? true : false;
+	}
+    
+    //根据预警Id查询预警处置信息，预警信息，车辆信息
+	@Override
+	public WarningDisposalView queryOneWarningDisposalInfo(String warningId) {
+		WarningDisposalView warningDisposalView = new WarningDisposalView();
+		//查询预警处置信息
+		DisposalProcess disposalProcess = disposalProcessMapper.queryDisposalProcessByWarningId(warningId);
+		//查询预警信息
+		EarlyWarningInfo earlyWarningInfo = earlyWarningInfoMapper.queryEarlyWarningInfoById(warningId);
+		if(null != earlyWarningInfo && !"".equals(earlyWarningInfo)){
+//			VehicleInfo vehicleInfo = vehicleInfoMapper.queryVehicleInfoById(earlyWarningInfo.getVehicleId());
+			QueryConditionData queryConditionData = new QueryConditionData();
+			queryConditionData.setPlateNumber(earlyWarningInfo.getPlateNumber());
+			VehicleInfo vehicleInfo = vehicleInfoMapper.queryVehicleInfoByPlateNumber(queryConditionData);
+			//查询车辆信息
+			if(null != vehicleInfo && !"".equals(vehicleInfo)){
+	            warningDisposalView.setVehicleInfo(vehicleInfo);
+			}
+			warningDisposalView.setEarlyWarningInfo(earlyWarningInfo);
+		}
+		warningDisposalView.setDisposalProcess(disposalProcess);
+		return warningDisposalView;
+	}
+
+	@Override
+	public List<WarningDisposalView> queryDisposaledInfo(Page page) {
+		List<WarningDisposalView> warningDisposalViewList = new ArrayList<WarningDisposalView>();
+
+        List<DisposalProcess> disposalProcessList = null;
+        disposalProcessList = disposalProcessMapper.queryDisposalProcess(page);
+
+        if (disposalProcessList != null && disposalProcessList.size() > 0) {
+            for (DisposalProcess disposalProcess : disposalProcessList) {
+                // 查询预警信息
+                EarlyWarningInfo earlyWarningInfo = earlyWarningInfoMapper.queryDisposalInfoById(disposalProcess.getWarningId());
+                // 查询车辆信息
+//                VehicleInfo vehicleInfo = vehicleInfoMapper.queryVehicleInfoById(earlyWarningInfo.getVehicleId());
+                if(null != earlyWarningInfo && !"".equals(earlyWarningInfo)){
+                	QueryConditionData queryConditionData = new QueryConditionData();
+        			queryConditionData.setPlateNumber(earlyWarningInfo.getPlateNumber());
+                	VehicleInfo vehicleInfo = vehicleInfoMapper.queryVehicleInfoByPlateNumber(queryConditionData);
+                	if(null != vehicleInfo && !"".equals(vehicleInfo)){
+                    	Integer accidentTotal = vehicleInfoMapper.countAccidentTotalByPlateNumber(vehicleInfo.getPlateNumber());
+                    	Integer illegalTotal = vehicleInfoMapper.countIllegalTotalByPlateNumber(vehicleInfo.getPlateNumber());
+    	                WarningDisposalView warningDisposalView = new WarningDisposalView();
+    	                warningDisposalView.setDisposalProcess(disposalProcess);
+    	                warningDisposalView.setEarlyWarningInfo(earlyWarningInfo);
+    	                warningDisposalView.setVehicleInfo(vehicleInfo);
+    	                warningDisposalView.setAccidentTotal(accidentTotal!=null?accidentTotal.intValue():0);
+    	                warningDisposalView.setIllegalTotal(illegalTotal!=null?illegalTotal.intValue():0);
+    	                warningDisposalViewList.add(warningDisposalView);
+                }
+                }
+            }
+        }
+        return warningDisposalViewList;
+	}
+}

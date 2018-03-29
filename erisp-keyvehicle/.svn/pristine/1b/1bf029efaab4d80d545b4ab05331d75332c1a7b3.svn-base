@@ -1,0 +1,77 @@
+package com.gkhb.keyvehicle.service;
+
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.gkhb.keyvehicle.BaseTestCase;
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.common.utils.DateUtils;
+import com.gkhb.keyvehicle.common.utils.JeckSonUtils;
+import com.gkhb.keyvehicle.model.VehicleRealTimeInfo;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView;
+import com.gkhb.keyvehicle.model.view.WarningSign;
+
+/**
+ *	车辆实时信息类单元测试
+ *	@author Colin
+ *	@createTime 2017年7月4日 上午9:54:57
+ */
+@RunWith(Parameterized.class)
+public class TestVehicleRealTimeInfoService extends BaseTestCase{
+	
+	@Autowired
+	private VehicleRealTimeInfoService vehicleRealTimeInfoService;
+	
+	@Autowired
+	private WarningSignService warningSignService;
+	
+	private VehicleRealTimeInfo vehicleRealTimeInfo;
+	
+	/**
+	 * 期望值
+	 */
+	private String expected;
+
+	public TestVehicleRealTimeInfoService(String expected,VehicleRealTimeInfo vehicleRealTimeInfo) {
+		this.vehicleRealTimeInfo = vehicleRealTimeInfo;
+		this.expected = expected;
+	}
+	
+	@Parameters
+	public static Collection<Object[]> data() throws ParseException, JsonProcessingException {
+		VehicleRealTimeInfo vehicleRealTimeInfo1 = new VehicleRealTimeInfo();
+		vehicleRealTimeInfo1.setId("1");
+		vehicleRealTimeInfo1.setLatitude(30.818449);
+		vehicleRealTimeInfo1.setLongitude(104.241908);
+		vehicleRealTimeInfo1.setPlateNumber("1");
+		vehicleRealTimeInfo1.setReportTime(DateUtils.formatDate("2017-07-03 15:35:27", DateUtils.YYYY_MM_DD_HH_MM_SS));
+//		List<VehicleInfo> list1 = new ArrayList<VehicleInfo>(); 
+//		list1.add(vehicleInfo1);
+		String json1 = JeckSonUtils.object2Json(vehicleRealTimeInfo1);
+		return Arrays.asList(new Object[][] { { json1, vehicleRealTimeInfo1 }});
+	}
+	
+	@Test
+	public void test() throws JsonProcessingException {
+		QueryConditionData queryConditionData = new QueryConditionData();
+//		queryConditionData.setPlateNumber("川AS0896");
+		Page page = new Page();
+		page.setPage(1);
+		List<WarningSign> searchWarningInfo = warningSignService.searchWarningInfo(queryConditionData, page);
+		System.out.println(searchWarningInfo);
+//		List<VehicleRealTimeInfoView> info = vehicleRealTimeInfoService.queryVehicleRealTimeInfo();
+//		System.out.println(info);
+	}
+	
+
+}

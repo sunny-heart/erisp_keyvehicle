@@ -1,0 +1,124 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown" style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="warningQueryController">
+			<div class="title_text">预警查询</div>
+			<div class="title_line"></div>
+			<div class="row-fluid">
+				<div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">开始时间 :</label>
+						<input id="startTime" ng-model="queryConditionData.startTime" class="form_datetime" size="22" type="text" style="width: 30%;" readonly/>
+						<label class="font_black_famil">结束时间 :</label>
+						<input id="endTime" ng-model="queryConditionData.endTime" class="form_datetime" size="22" type="text" style="width: 30%;" readonly/>
+					</div>
+				</div>
+				<div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">车牌号码 :</label>
+						<input id="plateNumber" type="text" class="pams_input font_black_famil" style="width: 70%;" ng-model="queryConditionData.plateNumber">
+					</div>
+				</div>
+				<div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">预警类型 :</label>
+						<select class="js-data-example-ajax font_black_famil" id="warningType" style="width:70%;" ng-model="queryConditionData.warningType">
+							<option value="" selected="selected">全部</option>
+							<option value="1">违规路线</option>
+							<option value="2">违规时间</option>
+							<option value="3">超速</option>
+							<option value="4">疲劳驾驶</option>
+						</select>
+					</div>
+				</div>
+				<div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">车辆类型 :</label>
+						<select class="js-data-example-ajax font_black_famil" id="vehicleType" style="width:70%;" ng-model="queryConditionData.vehicleType">
+							<option value="" selected="selected">全部</option>
+							<option value="新能源">新能源</option>
+							<option value="冷链车">冷链车</option>
+							<option value="危化品">危化品</option>
+							<option value="普通车">普通车</option>
+						</select>
+					</div>
+				</div>
+				<div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">处置状态 :</label>
+						<select class="js-data-example-ajax font_black_famil" id="dealState" style="width:70%;" ng-model="queryConditionData.warningDealState">
+							<option value="" selected="selected">全部</option>
+							<option value="1">分局未处置</option>
+							<option value="2">分局已处置</option>
+							<option value="3">行业未处置</option>
+							<option value="4">行业已处置</option>
+						</select>
+					</div>
+				</div>
+				<!-- <div class="col-md-4" style="padding-left:0px;">
+					<div class="form-group">
+						<label class="font_black_famil">抄报状态 :</label>
+						<select class="js-data-example-ajax font_black_famil" id="jgCcState" style="width:70%;" ng-model="queryConditionData.jgCcState">
+							<option value="" selected="selected">全部</option>
+							<option value="0">未抄报</option>
+							<option value="1">已抄报</option>
+						</select>
+					</div>
+				</div> -->
+			</div>
+			<div class="row-fluid" style="clear:left">
+				<div class="col-md-4" style="margin-bottom: 15px;padding-left: 0px;">
+					<div class="col-sm-8" style="padding-left: 0px;">
+						<button type="button" ng-click="query()" class="btn pams_query">
+							<span>查询<!-- <i class="fa fa-repeat"></i> --></span>
+						</button>
+						<button type="button" ng-click="reset()" class="btn pams_reset" style="margin-left: 15px;">
+							<span>重置<!-- <i class="fa fa-repeat"></i> --></span>
+						</button>
+						<!-- <button type="button" ng-click="updateJgCcState()" class="btn pams_query" style="margin-left: 15px;">
+							<span>抄报</span>
+						</button> -->
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+			<table class="table table-hover table-bordered table-responsive pams_table">
+				<thead>
+					<tr>
+						<th class="center table-th" style="cursor: pointer;" ng-click="swapCheck()">全选</th>
+						<th class="center table-th">预警类型</th>
+						<th class="center table-th">车牌号码</th>
+						<th class="center table-th">车辆种类</th>
+						<th class="center table-th">车辆类型</th>
+						<th class="center table-th">预警时间</th>
+						<th class="center table-th">预警信息</th>
+						<th class="center table-th">处置状态</th>
+						<!-- <th class="center table-th">抄报状态</th> -->
+			            <th class="center table-th">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="data in earlyWaringInfoList">
+						<td class="center table-td"><input type="checkbox" name="warningId" value="{{data.id}}"></td>
+						<td class="center table-td">{{data.warningType | warningType}}</td>
+						<td class="center table-td">{{data.plateNumber}}</td>
+						<td class="center table-td">{{data.vehicleBigType}}</td>
+						<td class="center table-td">{{data.vehicleType}}</td>
+						<td class="center table-td">{{data.warningStartTime}}</td>
+						<td class="center table-td">{{data.warningType | warningInfo}}</td>
+						<td class="center table-td">{{data.warningDealState | dealState}}</td>
+						<!-- <td class="center table-td">{{data.jgCcState | ccState}}</td> -->
+						<td class="center table-td"><a ng-click="queryDetails(data)">查看详情</a></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div style="text-align:right;margin-bottom: 12px;">
+			<div class="center" ng-show="totalItems>0" style="display:inline-block;padding-right:10px;">查询结果：共计<span style="font-weight:bold">{{totalItems}}</span>条 &nbsp;当前页<span style="font-weight:bold">{{currentPage}}</span>/共<span style="font-weight:bold">{{pages}}</span>页</div>
+		   <input id="first" class="btn" type="button" value="首页" style="height:28px;" ng-click="query()">
+		   <input id="previous" class="btn" type="button" value="上一页" style="height:28px;" ng-click="previousPage()">
+		   <input id="next" class="btn" type="button" value="下一页" style="height:28px;" ng-click="nextPage()">
+		   <input id="last" class="btn" type="button" value="末页" style="height:28px;" ng-click="lastPage()">
+		   <input id="pageNumber" class="" type="text"  style="height:28px;width: 70px;" ng-model="anyPage">
+		   <input id="go" class="btn" type="button" value="GO" style="height:28px;" ng-click="go()">
+		</div>
+	</div>
+</div>

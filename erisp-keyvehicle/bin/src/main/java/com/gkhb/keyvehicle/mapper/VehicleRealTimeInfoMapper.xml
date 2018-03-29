@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 车辆实时信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleRealTimeInfoMapper">
+
+	<!-- 查询车辆实时信息 -->
+	<select id="queryVehicleRealTimeInfo"
+		resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+		<!-- SELECT R.ID,R.PLATE_NUMBER,R.LATITUDE,R.LONGITUDE,R.REPORT_TIME FROM 
+			KV_REAL_TIME_DATA R -->
+		SELECT
+		R.ID,R.PLATE_NUMBER,R.LATITUDE,R.LONGITUDE,R.REPORT_TIME,KVI.VEHICLE_TYPE,KVI.VEHICLE_FRAME_NUMBER
+		FROM KV_REAL_TIME_DATA R
+		LEFT JOIN kv_vehicle_info KVI ON
+		KVI.PLATE_NUMBER=R.PLATE_NUMBER
+		inner join (
+		SELECT
+		R2.PLATE_NUMBER,MAX(R2.REPORT_TIME) rtime FROM KV_REAL_TIME_DATA R2
+		group by R2.plate_number
+		) RR on RR.plate_number=R.plate_number and
+		RR.rtime=R.report_time
+		order by R.plate_number desc
+	</select>
+
+	<!-- 查询某一辆车的实时信息 -->
+	<select id="queryOneVehicleRealTimeInfo" parameterType="java.lang.String"
+		resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+		<!-- MySQL -->
+		<!-- select krtd.ID,krtd.PLATE_NUMBER,krtd.LATITUDE,krtd.LONGITUDE,krtd.REPORT_TIME,KVI.VEHICLE_TYPE 
+			from kv_real_time_data krtd left join kv_vehicle_info kvi on kvi.PLATE_NUMBER=krtd.PLATE_NUMBER 
+			where 1=1 <if test=" plateNumber != null and plateNumber != '' "> and krtd.PLATE_NUMBER 
+			= #{plateNumber} </if> ORDER BY krtd.REPORT_TIME desc limit 1 -->
+
+		<!-- Oracle -->
+		select * from (
+		select
+		krtd.ID,krtd.PLATE_NUMBER,krtd.LATITUDE,krtd.LONGITUDE,krtd.REPORT_TIME,KVI.VEHICLE_TYPE
+		from kv_real_time_data krtd
+		left join kv_vehicle_info kvi on kvi.PLATE_NUMBER=krtd.PLATE_NUMBER
+		where 1=1
+		<if test=" plateNumber != null and plateNumber != '' ">
+			and krtd.PLATE_NUMBER = #{plateNumber}
+		</if>
+		ORDER BY krtd.REPORT_TIME desc
+		) where rownum=1
+	</select>
+
+	<select id="queryVehicleRealTimeInfoSpeed" resultType='java.lang.Double'>
+		select r.speed from kv_real_time_data r
+	</select>
+
+	<select id="queryVehicleDriveInfo" parameterType="java.lang.String"
+		resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+		select k1.*,
+		(select round(to_number(Cast(ktt.drive_end_time As
+		Date)-Cast(ktt.drive_start_time As Date))*1440) as drive_time from
+		kv_travel_time ktt
+		left join kv_vehicle_info kvi on kvi.id=ktt.vehicle_id where
+		kvi.plate_number=#{plateNumber}) drive_time,
+		(select count(1) warning_times from kv_early_warning_info kewi left join
+		kv_travel_time ktt on ktt.vehicle_id=kewi.vehicle_id
+		left join kv_vehicle_info kvi on kvi.id=kewi.vehicle_id
+		where 1=1
+		and kvi.plate_number=#{plateNumber}
+		and kewi.warning_start_time&gt;=ktt.drive_start_time and
+		kewi.warning_end_time&lt;=ktt.drive_end_time) warning_times
+		from
+		(select krtd.plate_number,krtd.speed,krtd.course,krtd.report_time from
+		kv_real_time_data krtd where krtd.plate_number=#{plateNumber} order by
+		krtd.report_time desc) k1
+		where rownum=1
+	</select>
+</mapper>

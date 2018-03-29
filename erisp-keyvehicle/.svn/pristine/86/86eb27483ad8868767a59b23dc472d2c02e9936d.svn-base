@@ -1,0 +1,39 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown"
+	style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="reportsByDepartmentController">
+	<div class="title_text">按主管部门统计预警数量</div>
+	<div class="title_line"></div>
+		<fieldset>
+			<div class="row-fluid">
+				<div class="col-md-4">
+						<label>时间 :</label>
+						<input id="startTime" ng-model="queryConditionData.startTime" class="form_datetime" size="22" type="text" style="width: 30%;"/>
+						--<input id="endTime" ng-model="queryConditionData.endTime" class="form_datetime" size="22" type="text" style="width: 30%;"/>
+				</div>
+				<div class="col-sm-4">
+					<button type="button" ng-click="countByDepartments()" class="btn pams_query">
+						<span>查询 <i class="fa fa-search"></i></span>
+					</button>
+				</div>
+			</div>
+		</fieldset>
+		<div class="row-fluid" style="width:100%; height:650px; overflow:scroll;">
+			<table id="countsTable" cellspacing="0" width="100%" class="table table-hover table-bordered table-responsive pams_table">
+				<thead>
+					<tr>
+						<th class="center table-th">统计月份</th>
+						<th class="center table-th">主管部门</th>
+						<th class="center table-th">预警类型</th>
+						<!-- <th class="center table-th">超速行驶</th>
+						<th class="center table-th">违规时间行驶</th>
+						<th class="center table-th">违规线路行驶</th>
+			            <th class="center table-th">疲劳驾驶</th> -->
+			            <th class="center table-th">预警数量</th>
+					</tr>
+				</thead>
+				<tbody style="text-align:center;">
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.TravelTimeMapper">
+	<insert id="addTravelTime" parameterType="com.gkhb.keyvehicle.model.TravelTime">
+		INSERT INTO
+		kv_travel_time(
+		ID
+		VEHICLE_ID,
+		DRIVE_START_DATE,
+		DRIVE_END_DATE,
+		DRIVE_START_TIME,
+		DRIVE_END_TIME,
+		STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{vehicleId},
+		#{driveStartDate},
+		#{driveEndDate},
+		#{driveStartTime},
+		#{driveEndTime},
+		#{state}
+		);
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryTravelTime" resultType='com.gkhb.keyvehicle.model.TravelTime'>
+		SELECT * FROM
+		KV_TRAVEL_TIME
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateTravelRoute" parameterType="com.gkhb.keyvehicle.model.TravelTime">
+		UPDATE
+		kv_travel_time SET
+		VEHICLE_TYPE=#{vehicleType},
+		VEHICLE_ID=#{vehicleId},
+		DRIVE_START_DATE={driveStartDate},
+		DRIVE_END_DATE=#{driveEndDate},
+		DRIVE_START_TIME=#{driveStartTime},
+		DRIVE_END_TIME=#{driveEndTime},
+		STATE=#{state}
+		WHERE
+		ID=#{id}
+	</update>
+	
+	<!-- 根据车辆id查询行驶时间 -->
+	<select id="queryTravelTimeByVehicleId" resultType='com.gkhb.keyvehicle.model.TravelTime'>
+		SELECT * FROM KV_TRAVEL_TIME WHERE VEHICLE_ID = #{vehicleId} and STATE = 0 and ROWNUM = 1
+	</select>
+	
+	<!-- 根据车辆类型查询行驶时间 -->
+	<select id="queryTravelTimeByVehicleType" resultType='com.gkhb.keyvehicle.model.TravelTime'>
+		SELECT * FROM KV_TRAVEL_TIME WHERE VEHICLE_TYPE = #{vehicleType} and STATE = 0 and ROWNUM = 1
+	</select>
+    
+    <!-- 预警查询-违规时间 -->
+    <select id="queryWarningInfo" resultType="com.gkhb.keyvehicle.model.view.WarningSetView">
+        SELECT 
+            travel_time.ID AS id,
+            '违规时间' AS warningType,
+            travel_time.VEHICLE_TYPE AS vehicleType,
+            vehicle.PLATE_NUMBER AS plateNumber,
+            
+            (CASE WHEN travel_time.DRIVE_START_DATE IS NOT NULL AND travel_time.DRIVE_END_DATE IS NOT NULL AND travel_time.DRIVE_START_TIME IS NOT NULL AND travel_time.DRIVE_END_TIME IS NOT NULL
+                    THEN '设置违规日期为 '||to_char(travel_time.DRIVE_START_DATE,'yyyy-MM-dd')||' 到 '||to_char(travel_time.DRIVE_END_DATE,'yyyy-MM-dd')||' ,'||'违规时间为每天 '|| to_char(travel_time.DRIVE_START_TIME,'HH24:mi:ss')||' 到 '||to_char(travel_time.DRIVE_END_TIME,'HH24:mi:ss')
+                WHEN travel_time.DRIVE_START_DATE IS NULL AND travel_time.DRIVE_END_DATE IS NULL AND travel_time.DRIVE_START_TIME IS NOT NULL AND travel_time.DRIVE_END_TIME IS NOT NULL
+                    THEN '设置违规时间为每天 '|| to_char(travel_time.DRIVE_START_TIME,'HH24:mi:ss')||' 到 '||to_char(travel_time.DRIVE_END_TIME,'HH24:mi:ss')
+                WHEN travel_time.DRIVE_START_DATE IS NOT NULL AND travel_time.DRIVE_END_DATE IS NOT NULL AND travel_time.DRIVE_START_TIME IS NULL AND travel_time.DRIVE_END_TIME IS NULL
+                    THEN '设置违规日期为 '||to_char(travel_time.DRIVE_START_DATE,'yyyy-MM-dd')||' 到 '||to_char(travel_time.DRIVE_END_DATE,'yyyy-MM-dd')
+                ELSE ''
+                END
+                ) AS remark
+                
+        FROM KV_TRAVEL_TIME travel_time
+        LEFT JOIN KV_VEHICLE_INFO vehicle
+        ON travel_time.VEHICLE_ID = vehicle.ID
+        <where>
+            <if test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+                AND travel_time.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+            </if>
+            <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+                AND vehicle.PLATE_NUMBER like CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+            </if>
+            AND travel_time.STATE = 0
+        </where>
+    </select>
+    
+    <!-- 删除预警信息 -->
+    <delete id="deleteWarningInfo" parameterType="java.lang.String">
+        DELETE FROM KV_TRAVEL_TIME WHERE ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

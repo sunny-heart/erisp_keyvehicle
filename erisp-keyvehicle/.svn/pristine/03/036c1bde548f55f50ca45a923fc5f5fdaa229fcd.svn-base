@@ -1,0 +1,18 @@
+package com.gkhb.keyvehicle.service;
+
+
+
+public interface VehicleOnlineStateService {
+	
+	/**
+	 * 根据实时表和历史表的数据生成车辆在线状态
+	 */
+	public void addVehicleOnlineState();
+	
+	/**
+	 * 清除车辆在线状态
+	 * @return
+	 */
+	public boolean deleteVehicleOnlineState();
+	
+}

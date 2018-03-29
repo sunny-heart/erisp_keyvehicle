@@ -1,0 +1,116 @@
+app.controller('focusMapController', [
+		'$scope',
+		'$filter',
+		'$timeout',
+		'$state',
+		'focusMapService',
+		'$rootScope',
+		'SweetAlert',
+		'$interval',
+		'$modal',
+		'$stateParams',
+		function($scope, $filter, $timeout, $state, focusMapService, $rootScope, SweetAlert, $interval, $modal, $stateParams) {
+			
+	var map;	//地图
+	var showZoom;//分局显示不同层级
+    var showCenterPoint;//分局显示不同中心点
+    
+	/**********************************地图图层显示start**********************************/
+    $scope.showMap = function(){
+    	require([  
+            "esri/map", 
+            "esri/layers/ArcGISTiledMapServiceLayer", 
+            "esri/geometry/Extent", 
+            "esri/geometry/Point", 
+            "esri/geometry/Polyline", 
+            "esri/SpatialReference",  
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/symbols/PictureMarkerSymbol", 
+            "esri/symbols/SimpleLineSymbol", 
+            "esri/layers/GraphicsLayer", 
+            "esri/symbols/SimpleFillSymbol", 
+            "esri/lang",
+            "esri/Color", 
+            "dojo/dom-style",
+            "dijit/TooltipDialog", 
+            "dijit/popup", 
+            "esri/graphic"  
+        ], function(
+        		Map, 
+        		ArcGISTiledMapServiceLayer, 
+        		Extent, 
+        		Point, 
+        		Polyline, 
+        		SpatialReference, 
+        		SimpleMarkerSymbol,
+        		PictureMarkerSymbol, 
+        		SimpleLineSymbol, 
+        		GraphicsLayer, 
+        		SimpleFillSymbol, 
+                esriLang,
+                Color, 
+                domStyle,
+                TooltipDialog, 
+                dijitPopup,
+        		Graphic) {  
+            // BASE_SERVER配置移至app.js
+            map = new Map("focusMap", {  
+//                center: [104.0657754083, 30.6583098090],  
+//              zoom: 4,//内网地图缩放等级
+                center: showCenterPoint,  
+                zoom: showZoom,//内网地图缩放等级
+                logo:false,
+                nav:false,
+                slider:false
+            }); 
+    		var layer = new ArcGISTiledMapServiceLayer(BASE_SERVER);
+            map.addLayer(layer);
+            //内网分局图层--勿删
+//    		var layer1 = new esri.layers.ArcGISDynamicMapServiceLayer("http://20.0.56.14:8399/arcgis/rest/services/cd_transperant/MapServer");
+//    		layer1.setVisibleLayers([0,1,2]);//设置图层显示
+//    		layer1.setOpacity(0.5);//设置图层透明度
+//          map.addLayer(layer1);
+        });   
+    }
+    /**********************************地图图层显示end**********************************/
+    
+    $scope.initZoomAndCenter = function(){
+		 switch ($rootScope.depName) {
+		case "01":
+			showCenterPoint = [104.010229,30.623509];
+//			showZoom = 5;
+			showZoom = 14;
+			break;
+		case "02":
+			showCenterPoint = [104.052628,30.728445];
+			showZoom = 5;
+			break;
+		case "03":
+			showCenterPoint = [104.117757,30.603133];
+			showZoom = 5;
+			break;
+		case "04":
+			showCenterPoint = [104.981480,30.679894];
+			showZoom = 5;
+			break;
+		case "05":
+			showCenterPoint = [104.144179,30.695388];
+			showZoom = 5;
+			break;
+		case "06":
+			showCenterPoint = [104.017999,30.635954];
+			showZoom = 5;
+			break;
+		default:
+			showCenterPoint = [104.0657754083, 30.6583098090];
+			showZoom = 14;
+			break;
+		}
+	 }
+    
+    
+    $scope.initZoomAndCenter();
+    $scope.showMap();
+	     
+} ]);
+

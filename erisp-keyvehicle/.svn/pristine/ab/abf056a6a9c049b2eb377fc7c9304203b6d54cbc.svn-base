@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleOnlineStateMapper">
+	
+	<update id="updateVehicleOnline" parameterType="com.gkhb.keyvehicle.model.VehicleOnlineState">
+		UPDATE KV_VEHICLE_ONLINE_STATE SET 
+			 VEHICLE_STATE = #{vehicleState}
+		WHERE VEHICLE_ID = #{vehicleId,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 查询所有在线离线信息 -->
+	<select id="queryAllOnline" resultType='com.gkhb.keyvehicle.model.VehicleOnlineState'>
+		SELECT * FROM KV_VEHICLE_ONLINE_STATE
+	</select>
+	
+	<select id="queryOnlineVehicles" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType="com.gkhb.keyvehicle.model.VehicleOnlineState">
+		select kvi.id as vehicle_id from (select krtd.plate_number,count(*) from kv_real_time_data krtd where krtd.report_time>(#{queryConditionData.currentDate}-1/24) group by krtd.plate_number
+		having count(*)>=1 order by krtd.plate_number) k 
+		inner join kv_vehicle_info kvi on kvi.plate_number=k.plate_number
+		union
+		select kvi2.id as vehicle_id from (select khd.plate_number,count(*) from kv_hist_data khd where khd.report_time>(#{queryConditionData.currentDate}-1/24) group by khd.plate_number 
+		having count(*)>=1 order by khd.plate_number) k2 
+		inner join kv_vehicle_info kvi2 on kvi2.plate_number=k2.plate_number
+	</select>
+	
+</mapper>

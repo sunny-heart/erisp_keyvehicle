@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 出租车信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.TaxiInfoMapper">
+
+<!-- 查询出租车信息 -->
+	<select id="queryTaxiInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.TaxiInfoView'>
+		SELECT V.taxi_id,V.str_fwz_no,V.str_name,V.str_sex,V.emp_tele,T.equip_no,T.str_vehicle_no,T.str_comshort,case when k.gps_state is null then 0
+         else k.gps_state end as gps_state
+		FROM KV_TAXI_DRIVER_INFO V,KV_TAXI_INFO T
+		left join kv_ds_real_time_gps_data k on k.plate_number=T.str_vehicle_no 
+		WHERE V.taxi_id = T.taxi_id
+        <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+            AND T.str_vehicle_no LIKE CONCAT(CONCAT(CONCAT(CONCAT('%', #{queryConditionData.plateNumberHead}),'%'),#{queryConditionData.plateNumberBody}),'%')
+        </if>
+        <if test=" queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany != '' ">
+            AND T.STR_COMSHORT LIKE CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+        </if>
+	</select>
+	
+	
+	<!-- 根据车牌号码查询并返回实体类 -->
+	<select id="queryTaxiInfoByPlateNumber" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.TaxiInfo'>
+		SELECT T.taxi_id,T.equip_no,T.str_vehicle_no,T.str_comshort FROM KV_TAXI_INFO T
+		WHERE T.taxi_id is not null
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND T.str_vehicle_no LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.plate != null and queryConditionData.plate != '' ">
+			AND T.str_vehicle_no LIKE CONCAT(CONCAT('%', #{queryConditionData.plate}),'%')
+		</if>
+	</select>
+	
+	<!-- 根据车牌查询某一车辆并返回view -->
+	<select id="searchTaxiInfoByPlateNumber" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.view.TaxiInfoView'>
+		SELECT T.taxi_id,T.equip_no,T.str_vehicle_no,T.str_comshort,V.str_fwz_no,V.str_name,V.str_sex,V.emp_tele FROM KV_TAXI_INFO T,KV_TAXI_DRIVER_INFO V
+		WHERE T.taxi_id = V.taxi_id
+		<if test="plateNumber != null and plateNumber != '' ">
+			AND T.str_vehicle_no LIKE CONCAT(CONCAT('%', #{plateNumber}),'%')
+		</if>
+	</select>
+	
+	<!-- 查询所有出租车信息 -->
+	<select id="queryAllTaxiInfo" resultType='com.gkhb.keyvehicle.model.TaxiInfo'>
+		select k.id,
+		       k.taxi_id,
+		       k.equip_no,
+		       k.str_vehicle_no,
+		       k.str_comshort,
+		       k.create_time
+		  from kv_taxi_info k
+		  order by to_number(k.id) asc
+	</select>
+	
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 出租车驾驶员信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.TaxiDriverInfoMapper">
+
+	<!-- 查询出租车驾驶员信息 -->
+	<select id="queryTaxiDriverInfo" resultType='com.gkhb.keyvehicle.model.TaxiDriverInfo'>
+		select k.id,
+		       k.taxi_id,
+		       k.str_fwz_no,
+		       k.str_name,
+		       k.str_sex,
+		       k.emp_tele,
+		       k.create_time
+		  from kv_taxi_driver_info k
+		  order by to_number(k.id) asc
+	</select>
+	
+</mapper>

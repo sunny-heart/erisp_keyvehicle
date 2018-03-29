@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.DisposalProcessMapper">
+	<insert id="addDisposalProcess" parameterType="com.gkhb.keyvehicle.model.DisposalProcess">
+		INSERT INTO KV_DISPOSAL_PROCESS(
+			ID,
+			WARNING_ID,
+			JG_DEPARTMENT,
+			JG_USER_ID,
+			JG_DISPOSAL_TIME,
+			JG_DISPOSAL_INSTRUCTIONS,
+			HY_DEPARTMENT,
+			HY_USER_ID,
+			HY_DISPOSAL_TIME,
+			HY_DISPOSAL_INSTRUCTIONS,
+			STATE,
+			JG_CC_STATE
+		)
+		VALUES
+		(
+			#{id},
+			#{warningId},
+			#{jgDepartment},
+			#{jgUserId,jdbcType=VARCHAR},
+			#{jgDisposalTime},
+			#{jgDisposalInstructions},
+			#{hyDepartment},
+			#{hyUserId,jdbcType=VARCHAR},
+			#{timesTamp},
+			#{hyDisposalInstructions},
+			#{state},
+			#{jgCcState}
+		)
+	</insert>
+
+	<!-- 通过车辆类型和车牌号码查询处置流程信息 -->
+	<select id="queryDisposalByVehicleInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		select D.* from
+		kv_disposal_process D,kv_ds_warning_info W,kv_vehicle_info V 
+		where JG_DISPOSAL_INSTRUCTIONS is null 
+		and D.Warning_Id = W.id 
+		and V.plate_number = W.plate_number
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.vehicleType != null and queryConditionData.vehicleType != '' ">
+			AND V.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.vehicleType}),'%')
+		</if>
+		order by W.warning_start_time desc
+	</select>
+	
+	<!-- 通过车辆类型和车牌号码查询已处置的信息 -->
+	<select id="queryDisposalProcessByVehicleInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		select D.* from
+		kv_disposal_process D,kv_ds_warning_info W,kv_vehicle_info V 
+		where JG_DISPOSAL_INSTRUCTIONS is not null
+		and JG_ENTRY_INSTRUCTIONS is null
+		and D.Warning_Id = W.id 
+		and V.plate_number = W.plate_number
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.vehicleType != null and queryConditionData.vehicleType != '' ">
+			AND V.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.vehicleType}),'%')
+		</if>
+		order by W.warning_start_time desc
+	</select>
+	
+	<!-- and JG_ENTRY_INSTRUCTIONS is null and W.disposal_way = 1 or W.disposal_way = 2 -->
+	
+	<!-- 查询所有 -->
+	<select id="queryDisposalProcess" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		select D.* from
+		kv_disposal_process D,kv_ds_warning_info W
+		where JG_DISPOSAL_INSTRUCTIONS is null 
+		and D.Warning_Id = W.id 
+		order by W.warning_start_time desc
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateDisposalProcess" parameterType="com.gkhb.keyvehicle.model.DisposalProcess">
+		UPDATE
+		KV_DISPOSAL_PROCESS SET
+		WARNING_ID=#{warningId},
+		JG_DEPARTMENT=#{jgDepartment},
+		JG_USER_ID=#{jgUserId},
+		JG_DISPOSAL_TIME=#{jgDisposalTime},
+		JG_DISPOSAL_INSTRUCTIONS=#{jgDisposalInstructions},
+		HY_DEPARTMENT=#{hyDepartment},
+		HY_USER_ID=#{hyUserId},
+		HY_DISPOSAL_TIME=#{timesTamp},
+		HY_DISPOSAL_INSTRUCTIONS=#{hyDisposalInstructions},
+		STATE=#{state},
+		JG_CC_STATE=#{jgCcState}
+		WHERE
+		ID = #{id}
+	</update>
+	
+	<!-- 修改录入 -->
+	<update id="updateDisposalEntry" parameterType="com.gkhb.keyvehicle.model.DisposalEntry">
+		UPDATE
+		KV_DISPOSAL_PROCESS SET
+		WARNING_ID=#{warningId},
+		JG_ENTRY_DEPARTMENT=#{jgEntryDepartment},
+		JG_ENTRY_USER_ID=#{jgEntryUserId},
+		JG_ENTRY_TIME=#{jgEntryTime},
+		JG_ENTRY_INSTRUCTIONS=#{jgEntryInstructions},
+		HY_ENTRY_DEPARTMENT=#{hyEntryDepartment},
+		HY_ENTRY_USER_ID=#{hyEntryUserId},
+		HY_ENTRY_TIME=#{hyEntryTime},
+		HY_ENTRY_INSTRUCTIONS=#{hyEntryInstructions},
+		STATE=#{state}
+		WHERE
+		ID = #{id}
+	</update>
+	
+	<!-- 抄报状态修改 -->
+	<update id="updateJgCcState">
+		update KV_DISPOSAL_PROCESS set
+		JG_CC_STATE=1
+		where WARNING_ID in
+		<foreach collection="disposalProcessView.warningIdList" item="warningId" index="index"
+            open="(" close=")" separator=",">
+            #{warningId}
+        </foreach>
+	</update>
+	
+	<!-- 查询交管局部门预警处置 -->
+	<select id="queryJGJBMDisposalProcess" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		SELECT t.* FROM KV_DISPOSAL_PROCESS t ,KV_EARLY_WARNING_INFO y WHERE t.WARNING_ID = y.ID AND t.JG_DEPARTMENT IS NOT NULL AND t.JG_USER_ID IS NULL AND t.STATE = 0 AND t.JG_DEPARTMENT = #{department} ORDER BY y.WARNING_START_TIME DESC
+	</select>
+	
+	<!-- 查询行业主管部门预警处置 -->
+	<select id="queryHYBMDisposalProcess" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		SELECT t.* FROM KV_DISPOSAL_PROCESS t,KV_EARLY_WARNING_INFO y WHERE t.WARNING_ID = y.ID AND t.JG_DEPARTMENT IS NOT NULL AND t.JG_USER_ID IS NOT NULL AND t.STATE = 0 AND t.JG_USER_ID = #{department} ORDER BY y.WARNING_START_TIME DESC
+	</select>
+	
+	<!-- 根据预警ID查询预警处置信息 -->
+	<select id="queryDisposalProcessByWarningId" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.DisposalProcess'>
+		select t.* from KV_DISPOSAL_PROCESS t where t.WARNING_ID = #{warningId}
+	</select>
+
+</mapper>

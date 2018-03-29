@@ -1,0 +1,50 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown" readonly="readonly" style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="warningRuleController">
+		<div class="title_text" style="display:inline-block;width:100%;">速度预警规则录入
+			<button type="button" class="btn pams_query" style="float:right" ng-click="saveSpeedRule()">
+				<span>保存</span>
+			</button>
+		</div>
+		<div data-ng-init="loadRuleData()" ></div>
+		<div class="title_line"></div>
+		<div class="row-fluid">
+			<table
+				class="table table-hover table-bordered table-responsive pams_table">
+				<input type="hidden" id="speedRuleId" ng-model="ruleData.id">
+				<input type="hidden" name="ruleType" value="SPEED" ng-init="ruleData.ruleType='SPEED'">
+				<tr>
+					<td class="center" style="background:#f2f2f2">规则名称</td>
+					<td class="left table-td">
+						<input type="text" name="ruleName" ng-model="ruleData.name" maxlength="50" style="width: 500px">
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">车辆类型</td>
+					<td class="left table-td">
+						<div ng-repeat="s in getVehicleTypes()" style="display: inline-block;">
+							<input id="vehicleType{{s.id}}" type="checkbox" name="vehicleType" value="{{s.id}}" ng-checked="isCheck(s.id, ruleData.vehicleType)">
+							<label for="vehicleType{{s.id}}" style="margin-right: 16px;">{{s.name}}</label>
+						</div>
+					</td>
+				</tr>
+				<tr id="warningType_speed">
+					<td class="center" style="background:#f2f2f2">速度范围</td>
+					<td class="left table-td">
+						<div ng-init="ruleData.rule[0].roadName = '三环'">三环：<input type="number" name="third" style="border: 0;background: none;border-bottom: 1px solid #c8c7cc;" ng-model="ruleData.rule[0].speed">公里/时</div>
+						<div ng-init="ruleData.rule[1].roadName = '绕城高速'">四环：<input type="number" name="fourth" style="border: 0;background: none;border-bottom: 1px solid #c8c7cc;" ng-model="ruleData.rule[1].speed">公里/时</div>
+						<div ng-init="ruleData.rule[2].roadName = '其他'">其他：<input type="number" name="fifth" style="border: 0;background: none;border-bottom: 1px solid #c8c7cc;" ng-model="ruleData.rule[2].speed">公里/时</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">超速判定</td>
+					<td>
+						<div>
+							<input type="number" name="overTime" disabled value="5" style="border: 0;background: none !important;border-bottom: 1px solid #c8c7cc;text-align: center;width: 50px;">分钟内，超速率达到
+							<input type="number" name="fourth" value="90" disabled style="text-align: center;width: 50px;border: 0;background: none !important;border-bottom: 1px solid #c8c7cc;">%
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

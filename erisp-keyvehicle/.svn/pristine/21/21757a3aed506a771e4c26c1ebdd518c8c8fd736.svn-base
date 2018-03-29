@@ -1,0 +1,60 @@
+package com.gkhb.keyvehicle.model.export;
+
+
+/*
+ * 违法信息导出
+ * 
+ */
+public class IllegalInfoExport {
+	/**
+	 * 车牌号码
+	 */
+	private String plateNumber;
+	/**
+	 * 违法类型
+	 */
+	private String illegalType;
+	/**
+	 * 违法时间
+	 */
+	private String illegalTime;
+	/**
+	 * 违法地点
+	 */
+	private String illegalPlace;
+	/**
+	 * 违法行为
+	 */
+	private String illegalBehavior;
+	public String getPlateNumber() {
+		return plateNumber;
+	}
+	public void setPlateNumber(String plateNumber) {
+		this.plateNumber = plateNumber;
+	}
+	public String getIllegalType() {
+		return illegalType;
+	}
+	public void setIllegalType(String illegalType) {
+		this.illegalType = illegalType;
+	}
+	public String getIllegalTime() {
+		return illegalTime;
+	}
+	public void setIllegalTime(String illegalTime) {
+		this.illegalTime = illegalTime;
+	}
+	public String getIllegalPlace() {
+		return illegalPlace;
+	}
+	public void setIllegalPlace(String illegalPlace) {
+		this.illegalPlace = illegalPlace;
+	}
+	public String getIllegalBehavior() {
+		return illegalBehavior;
+	}
+	public void setIllegalBehavior(String illegalBehavior) {
+		this.illegalBehavior = illegalBehavior;
+	}
+
+}

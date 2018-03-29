@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 报表统计Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.ReportsMapper">
+
+	<!-- 根据车辆类型统计 -->
+	<select id="countByTypes" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		<!-- select (case when v.vehicle_type is null then '其他车' else v.vehicle_type end) vehicle_type,to_char(k.warning_start_time,'mm') as count_time, count(1) as warning_counts from kv_early_warning_info k 
+		 left join kv_vehicle_info v on v.id=k.vehicle_id where 1=1
+		 <if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+		 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+		 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+		 </if>
+		 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 </if>
+		 group by to_char(k.warning_start_time,'mm'),v.vehicle_type
+		 order by to_char(k.warning_start_time,'mm') asc -->
+		 select 
+		 to_char(k.warning_start_time,'mm') as count_time,
+		 nvl(v.vehicle_type, '其他车') as vehicle_type,
+		 k.warning_type,
+		 count(1) as warning_counts 
+		 from kv_early_warning_info k 
+ 		 left join kv_vehicle_info v on v.id=k.vehicle_id
+ 		 <where>
+ 		 	<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+			 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+			 </if>
+			 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 	</if> 
+ 		 </where>
+ 		 group by to_char(k.warning_start_time,'mm'),k.warning_type,v.vehicle_type 
+		 order by to_char(k.warning_start_time,'mm') asc
+	</select>
+	
+	<!-- 根据主管部门统计 -->
+	<select id="countByDepartments" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		<!-- select (case when v.competent_authority is null then '其他部门' else v.competent_authority end) competent_authority,to_char(k.warning_start_time,'mm') as count_time, count(1) as warning_counts from kv_early_warning_info k 
+		 left join kv_vehicle_info v on v.id=k.vehicle_id where 1=1 
+		 <if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+		 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+		 </if>
+		 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 </if> 
+		 group by to_char(k.warning_start_time,'mm'),v.competent_authority
+		 order by to_char(k.warning_start_time,'mm') asc -->
+		 select 
+	     to_char(k.warning_start_time,'mm') as count_time,
+	     nvl(v.competent_authority, '其他部门') as competent_authority,
+	     k.warning_type,
+	     count(1) as warning_counts 
+	     from kv_early_warning_info k 
+	     left join kv_vehicle_info v on v.id=k.vehicle_id
+	     <where>
+ 		 	<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+			 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+			 </if>
+			 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 	</if> 
+ 		 </where>
+	     group by to_char(k.warning_start_time,'mm'),k.warning_type,v.competent_authority 
+		 order by to_char(k.warning_start_time,'mm') asc
+	</select>
+</mapper>

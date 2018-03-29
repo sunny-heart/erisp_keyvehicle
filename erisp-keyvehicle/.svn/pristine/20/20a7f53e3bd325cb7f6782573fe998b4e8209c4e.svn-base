@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.EarlyWarningInfoMapper">
+	<insert id="addEarlyWarningInfo" parameterType="com.gkhb.keyvehicle.model.EarlyWarningInfo">
+		INSERT INTO
+		KV_EARLY_WARNING_INFO(
+		ID,
+		VEHICLE_ID,
+		WARNING_TYPE,
+		WARNING_START_TIME,
+		WARNING_START_LOCATION,
+		WARNING_END_TIME,
+		WARNING_END_LOCATION,
+		STATE,
+		SPEED,
+		WARNING_SET_ID
+		)
+		VALUES
+		(
+		#{id},
+		#{vehicleId},
+		#{warningType},
+		#{warningStartTime},
+		#{warningStartLocation},
+		#{warningEndTime},
+		#{warningEndLocation},
+		#{state},
+		#{speed},
+		#{warningSetId}
+		)
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryEarlyWarningInfo" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		select * from kv_early_warning_info
+	</select>
+	
+	<!-- 根据预警id查询预警信息 -->
+	<select id="queryEarlyWarningInfoById" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT D.id,D.plate_number,D.warning_type,D.warning_start_time,D.warning_end_time,D.state,D.sign_state,D.speed,D.road_name,D.disposal_way,D.warn_gps_data FROM KV_DS_WARNING_INFO D 
+		WHERE ID = #{id} and D.disposal_way = 0 order by D.warning_start_time desc
+	</select>
+	
+	<!-- 根据预警id查询预警信息 -->
+	<select id="queryEarlyWarningInfoByPlateNumber" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT D.id,D.plate_number,D.warning_type,D.warning_start_time,D.warning_end_time,D.state,D.sign_state,D.speed,D.road_name,D.disposal_way,D.warn_gps_data FROM KV_DS_WARNING_INFO D 
+		WHERE ID = #{queryConditionData.id} 
+		and D.disposal_way = 0 
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND D.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.warningVehicleType != null and queryConditionData.warningVehicleType != '' ">
+			AND D.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.warningVehicleType}),'%')
+		</if>
+		order by D.warning_start_time desc
+	</select>
+<!-- 	<select id="queryEarlyWarningInfoById" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM KV_EARLY_WARNING_INFO WHERE ID = #{id}
+	</select> -->
+	
+	<!-- 查询处置状态为已处置的预警信息 -->
+	<select id="queryDisposalInfoById" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT D.id,D.plate_number,D.warning_type,D.warning_start_time,D.warning_end_time,D.state,D.sign_state,D.speed,D.road_name,D.disposal_way,D.warn_gps_data FROM KV_DS_WARNING_INFO D 
+		WHERE ID = #{queryConditionData.id} 
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND D.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.warningVehicleType != null and queryConditionData.warningVehicleType != '' ">
+			AND D.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.warningVehicleType}),'%')
+		</if>
+		order by D.warning_start_time desc
+	</select>
+	
+	<!-- and D.disposal_way = 1 or D.disposal_way = 2 -->
+	
+	<!-- 查询所有 -->
+	<select id="queryEarlyWarningInfoByVehicleIdAndWarningType" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM (
+			SELECT
+				*
+			FROM
+				KV_EARLY_WARNING_INFO
+			WHERE
+			VEHICLE_ID = #{vehicleId}
+			AND WARNING_TYPE = #{warningType}
+			ORDER BY
+				WARNING_END_TIME DESC
+		) WHERE ROWNUM = 1
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateEarlyWarningInfo" parameterType="com.gkhb.keyvehicle.model.EarlyWarningInfo">
+		UPDATE
+		KV_EARLY_WARNING_INFO SET
+		VEHICLE_ID=#{vehicleId},
+		WARNING_TYPE=#{warningType},
+		WARNING_START_TIME=#{warningStartTime},
+		WARNING_START_LOCATION=#{warningStartLocation},
+		WARNING_END_TIME=#{warningEndTime},
+		WARNING_END_LOCATION=#{warningEndLocation},
+		STATE=#{state},
+		SPEED=#{speed},
+		WARNING_SET_ID=#{warningSetId}
+		WHERE
+		ID = #{id}
+	</update>
+	
+	<!-- 查车辆数及预警数 -->
+	<select id="queryEarlyWarningInfoCounts" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		 <!-- select
+		 (select count(1) vehicle_total from kv_vehicle_info kvi where kvi.state=0) vehicle_total,
+		 (select count(1) from kv_vehicle_online_state kvos where kvos.vehicle_state=1) current_online_total,
+		 (select sum(count(distinct kewi.vehicle_id)) warning_total from kv_early_warning_info kewi group by kewi.vehicle_id) warning_total,
+		 (select sum(count(distinct kewi.vehicle_id)) today_warning_total from kv_early_warning_info kewi where to_char(kewi.warning_start_time, 'yyyy-mm-dd')=to_char(#{nowDate}, 'yyyy-mm-dd' ) group by kewi.vehicle_id) today_warning_total
+		 from dual -->
+		 select
+	     (select count(1) vehicle_total from kv_vehicle_info kvi where kvi.state=0
+	     <include refid="vehicleType_filter"></include>
+	     ) vehicle_total,
+	     (select count(1) from kv_vehicle_online_state kvos left join kv_vehicle_info kvi on kvi.id=kvos.vehicle_id where kvos.vehicle_state=1
+	     <include refid="vehicleType_filter"></include>
+	      ) current_online_total,
+	     (select sum(count(distinct kewi.vehicle_id)) warning_total from kv_early_warning_info kewi left join kv_vehicle_info kvi on kvi.id=kewi.vehicle_id where 1=1
+	     <include refid="vehicleType_filter"></include> 
+	       group by kewi.vehicle_id) warning_total,
+	     (select sum(count(distinct kewi.vehicle_id)) today_warning_total from kv_early_warning_info kewi left join kv_vehicle_info kvi on kvi.id=kewi.vehicle_id where to_char(kewi.warning_start_time, 'yyyy-mm-dd')=to_char(#{queryConditionData.currentDate}, 'yyyy-mm-dd')
+	     <include refid="vehicleType_filter"></include>
+	       group by kewi.vehicle_id) today_warning_total
+	     from dual
+	</select>
+	
+	<sql id="vehicleType_filter">
+    	<if test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+         	and ( 1=0
+         	<if test=" queryConditionData.newChecked != null and queryConditionData.newChecked !='' ">
+	     		or kvi.vehicle_type like CONCAT(CONCAT('',#{queryConditionData.newChecked}),'%')
+         	</if>
+         	<if test=" queryConditionData.dangerousChecked != null and queryConditionData.dangerousChecked !='' ">
+	     		or kvi.vehicle_type like CONCAT(CONCAT('',#{queryConditionData.dangerousChecked}),'%')
+         	</if>
+         	<if test=" queryConditionData.coldChecked != null and queryConditionData.coldChecked !='' ">
+	     		or kvi.vehicle_type like CONCAT(CONCAT('',#{queryConditionData.coldChecked}),'%')
+         	</if>
+         	<if test=" queryConditionData.ordinaryChecked != null and queryConditionData.ordinaryChecked !='' ">
+	     		or kvi.vehicle_type like CONCAT(CONCAT('',#{queryConditionData.ordinaryChecked}),'%')
+         	</if>
+         	)
+         </if>
+	</sql>
+
+	<!-- 根据车辆ID查询最新一条预警信息 -->
+	<select id="queryEarlyWarningInfoByVehicleId" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.EarlyWarningInfo'>
+		SELECT * FROM (
+			SELECT
+				*
+			FROM
+				KV_EARLY_WARNING_INFO
+			WHERE
+			VEHICLE_ID = #{vehicleId}
+			ORDER BY
+				WARNING_END_TIME DESC
+		) WHERE ROWNUM = 1
+	</select>
+	
+	<!-- 预警查询 -->
+	<!-- <select id="queryEarlyWaringInfoList" resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		select 
+		k.id,
+		k.warning_type,
+		NVL(k.plate_number, '全部') plate_number,
+		'物流车' as vehicle_big_type,
+		NVL(k.vehicle_type, '全部') vehicle_type,
+		k.warning_start_time,
+		k.warning_type as warning_info,
+		k.disposal_way as warning_deal_state,
+		NVL(d.jg_cc_state,0) as jg_cc_state 
+		from kv_ds_warning_info k
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.warning_start_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.warning_end_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.plateNumber!=null and queryConditionData.plateNumber!=''">
+				<choose>
+					<when test=" queryConditionData.plateNumber=='全部'">
+						and v.plate_number is null
+					</when>
+					<otherwise>
+						and v.plate_number like CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" queryConditionData.warningType!=null and queryConditionData.warningType!=''">
+				and k.warning_type=#{queryConditionData.warningType}
+			</if>
+			<if test=" queryConditionData.vehicleType!=null and queryConditionData.vehicleType!=''">
+				and v.vehicle_type=#{queryConditionData.vehicleType}
+			</if>
+			<if test=" queryConditionData.warningDealState!=null and queryConditionData.warningDealState!=''">
+				<choose>
+					<when test="queryConditionData.warningDealState==1">
+						and d.hy_department is null and d.state=0
+					</when>
+					<when test="queryConditionData.warningDealState==2">
+						and d.hy_department is null and d.state=1
+					</when>
+					<when test="queryConditionData.warningDealState==3">
+						and d.hy_department is not null and d.state=0
+					</when>
+					<when test="queryConditionData.warningDealState==4">
+						and d.hy_department is not null and d.state=1
+					</when>
+				</choose>
+			</if>
+			<if test=" queryConditionData.jgCcState!=null and queryConditionData.jgCcState!=''">
+				and NVL(d.jg_cc_state, 0)=#{queryConditionData.jgCcState}
+			</if>
+		</where>
+		order by k.warning_start_time desc
+	</select> -->
+ 	<select id="queryEarlyWaringInfoList" resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		select 
+		k.id,
+		k.warning_type,
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		'物流车' as vehicle_big_type,
+		NVL(k.vehicle_type, '全部') vehicle_type,
+		k.warning_start_time,
+		k.warning_type as warning_info
+		,k.disposal_way,
+		NVL(d.jg_cc_state,0) as jg_cc_state
+		from KV_DS_WARNING_INFO k
+		left join kv_disposal_process d on d.warning_id=k.id
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			and k.disposal_way=2
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.warning_start_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.warning_end_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.plateNumber!=null and queryConditionData.plateNumber!=''">
+				<choose>
+					<when test=" queryConditionData.plateNumber=='全部'">
+						and k.plate_number is null
+					</when>
+					<otherwise>
+						and k.plate_number like CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" queryConditionData.warningType!=null and queryConditionData.warningType!=''">
+				and k.warning_type=#{queryConditionData.warningType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.vehicleType!=null and queryConditionData.vehicleType!=''">
+				and k.vehicle_type=#{queryConditionData.vehicleType}
+			</if>
+			<if test=" queryConditionData.warningDealState!=null and queryConditionData.warningDealState!=''">
+				<choose>
+					<when test="queryConditionData.warningDealState==0">
+						and k.disposal_way=0
+					</when>
+					<when test="queryConditionData.warningDealState==1">
+						and (k.disposal_way=1 or k.disposal_way=2)
+					</when>
+					<when test="queryConditionData.warningDealState==2">
+						and (k.disposal_way>2)
+					</when>
+				</choose>
+			</if>
+			<if test=" queryConditionData.jgCcState!=null and queryConditionData.jgCcState!=''">
+				and NVL(d.jg_cc_state, 0)=#{queryConditionData.jgCcState}
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.warning_start_time desc
+	</select>
+	
+	<!-- 导出预警信息 -->
+	<select id="exportEarlyWarningInfo" resultType='com.gkhb.keyvehicle.model.export.EarlyWarningInfoExport'>
+		select 
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		(case when k.warning_type=1 then '违规路线行驶' when k.warning_type=2 then '违规时间行驶' when k.warning_type=3 then '超速行驶' when k.warning_type=4 then '疲劳驾驶' end) warning_type,
+		k.warning_start_time,
+		(case when k.warning_type=1 then '车辆违规路线行驶' when k.warning_type=2 then '车辆违规时间行驶' when k.warning_type=3 then '车辆超速行驶' when k.warning_type=4 then '车辆疲劳驾驶' end) warning_info
+		<!-- (case when k.disposal_way=0 then '未处置' when 1&gt;k.disposal_way and k.disposal_way&lt;3 then '处置中' else '不处置' end) disposal_way
+		(case when NVL(d.jg_cc_state,0)=0 then '未抄告' when NVL(d.jg_cc_state,0)=1 then '已抄告' end) jg_cc_state -->
+		from KV_DS_WARNING_INFO k
+		left join kv_disposal_process d on d.warning_id=k.id
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			and k.disposal_way=2
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.warning_start_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.warning_end_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.plateNumber!=null and queryConditionData.plateNumber!=''">
+				<choose>
+					<when test=" queryConditionData.plateNumber=='全部'">
+						and k.plate_number is null
+					</when>
+					<otherwise>
+						and k.plate_number like CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" queryConditionData.warningType!=null and queryConditionData.warningType!=''">
+				and k.warning_type=#{queryConditionData.warningType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.vehicleType!=null and queryConditionData.vehicleType!=''">
+				and k.vehicle_type=#{queryConditionData.vehicleType}
+			</if>
+			<if test=" queryConditionData.warningDealState!=null and queryConditionData.warningDealState!=''">
+				<choose>
+					<when test="queryConditionData.warningDealState==0">
+						and k.disposal_way=0
+					</when>
+					<when test="queryConditionData.warningDealState==1">
+						and (k.disposal_way=1 or k.disposal_way=2)
+					</when>
+					<when test="queryConditionData.warningDealState==2">
+						and (k.disposal_way>2)
+					</when>
+				</choose>
+			</if>
+			<if test=" queryConditionData.jgCcState!=null and queryConditionData.jgCcState!=''">
+				and NVL(d.jg_cc_state, 0)=#{queryConditionData.jgCcState}
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.warning_start_time desc
+	</select>
+	
+	<!-- 导出事故信息 -->
+	<select id="exportAccidentInfo" resultType='com.gkhb.keyvehicle.model.export.AccidentInfoExport'>
+		select 
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		(case when k.accident_type=1 then '简易事故' when k.accident_type=2 then '一般事故' end) accident_type,
+		k.accident_time,
+		k.accident_place,
+		k.accident_liability
+		from KV_ACCIDENT_INFO k
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.accident_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.accident_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.accidentType!=null and queryConditionData.accidentType!=''">
+				and k.accident_type=#{queryConditionData.accidentType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.accident_time desc
+	</select>
+	
+	<!-- 导出违法信息 -->
+	<select id="exportIllegalInfo" resultType='com.gkhb.keyvehicle.model.export.IllegalInfoExport'>
+		select 
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		(case when k.illegal_type=1 then '现场简易违法' when k.illegal_type=2 then '现场一般违法' when k.illegal_type=3 then '非现场电子监控' end) illegal_type,
+		k.illegal_time,
+		k.illegal_place,
+		k.illegal_behavior
+		from kv_illegal_info k
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.illegal_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.illegal_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.illegalType!=null and queryConditionData.illegalType!=''">
+				and k.illegal_type=#{queryConditionData.illegalType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.illegal_time desc
+	</select>
+	
+	<!-- 查询事故信息 -->
+	<select id="queryAccidentInfo" resultType='com.gkhb.keyvehicle.model.export.AccidentInfoExport'>
+		select 
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		(case when k.accident_type=1 then '简易事故' when k.accident_type=2 then '一般事故' end) accident_type,
+		k.accident_time,
+		k.accident_place,
+		k.accident_liability
+		from KV_ACCIDENT_INFO k
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.accident_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.accident_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.accidentType!=null and queryConditionData.accidentType!=''">
+				and k.accident_type=#{queryConditionData.accidentType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.accident_time desc
+	</select>
+	
+	<!-- 查询违法信息 -->
+	<select id="queryIllegalInfo" resultType='com.gkhb.keyvehicle.model.export.IllegalInfoExport'>
+		select 
+		NVL(k.plate_number, '全部') plate_number,
+		v.ASCRIPTION_COMPANY,
+		v.CONTACTS,
+		v.PHONE_NUMBER,
+		v.COMPETENT_AUTHORITY,
+		(case when k.illegal_type=1 then '现场简易违法' when k.illegal_type=2 then '现场一般违法' when k.illegal_type=3 then '非现场电子监控' end) illegal_type,
+		k.illegal_time,
+		k.illegal_place,
+		k.illegal_behavior
+		from kv_illegal_info k
+		left join kv_vehicle_info v on v.plate_number=k.plate_number
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.illegal_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.illegal_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.illegalType!=null and queryConditionData.illegalType!=''">
+				and k.illegal_type=#{queryConditionData.illegalType}
+			</if>
+			<if test=" queryConditionData.competentAuthority!=null and queryConditionData.competentAuthority!=''">
+				and v.competent_authority like CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+			</if>
+			<if test=" queryConditionData.ascriptionCompany!=null and queryConditionData.ascriptionCompany!=''">
+				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		order by k.illegal_time desc
+	</select>
+	
+	<!-- 不分页查询预警信息 -->
+ 	<select id="queryEarlyWaringInfoListCounts" resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		select 
+		k.id,
+		k.warning_type,
+		NVL(v.plate_number, '全部') plate_number,
+		'物流车' as vehicle_big_type,
+		NVL(v.vehicle_type, '全部') vehicle_type,
+		k.warning_start_time,
+		k.warning_type as warning_info,
+		(case when d.hy_department is null and d.state=0 then 1 when d.hy_department is null and d.state=1 then 2 when d.hy_department is not null and d.state=0 then 3 when d.hy_department is not null and d.state=1 then 4 end) as warning_deal_state,
+		NVL(d.jg_cc_state,0) as jg_cc_state 
+		from kv_early_warning_info k
+		left join kv_vehicle_info v on v.id=k.vehicle_id
+		left join kv_disposal_process d on d.warning_id=k.id
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.warning_start_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.warning_end_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.plateNumber!=null and queryConditionData.plateNumber!=''">
+				<choose>
+					<when test=" queryConditionData.plateNumber=='全部'">
+						and v.plate_number is null
+					</when>
+					<otherwise>
+						and v.plate_number like CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" queryConditionData.warningType!=null and queryConditionData.warningType!=''">
+				and k.warning_type=#{queryConditionData.warningType}
+			</if>
+			<if test=" queryConditionData.vehicleType!=null and queryConditionData.vehicleType!=''">
+				and v.vehicle_type=#{queryConditionData.vehicleType}
+			</if>
+			<if test=" queryConditionData.warningDealState!=null and queryConditionData.warningDealState!=''">
+				<choose>
+					<when test="queryConditionData.warningDealState==1">
+						and d.hy_department is null and d.state=0
+					</when>
+					<when test="queryConditionData.warningDealState==2">
+						and d.hy_department is null and d.state=1
+					</when>
+					<when test="queryConditionData.warningDealState==3">
+						and d.hy_department is not null and d.state=0
+					</when>
+					<when test="queryConditionData.warningDealState==4">
+						and d.hy_department is not null and d.state=1
+					</when>
+				</choose>
+			</if>
+			<if test=" queryConditionData.jgCcState!=null and queryConditionData.jgCcState!=''">
+				and NVL(d.jg_cc_state, 0)=#{queryConditionData.jgCcState}
+			</if>
+		</where>
+		order by k.warning_start_time desc
+	</select>
+	
+	<!-- 预警查询页面查询预警信息 -->
+	<select id="queryEarlyWaring" resultType='com.gkhb.keyvehicle.model.view.EarlyWarningInfoView'>
+		select 
+		k.id,
+		k.warning_type,
+		NVL(k.plate_number, '全部') plate_number,
+		'物流车' as vehicle_big_type,
+		NVL(k.vehicle_type, '全部') vehicle_type,
+		k.warning_start_time,
+		k.warning_type as warning_info,
+		(case when k.disposal_way = 0 then 1 when k.disposal_way = 1 or k.disposal_way = 2 then 2 when k.disposal_way = 3 or k.disposal_way = 4 or k.disposal_way = 5 or k.disposal_way = 6 then 3 end) as warning_deal_state
+		from kv_ds_warning_info k
+		<where>
+			<if test=" queryConditionData.startTime!=null and queryConditionData.startTime!=''">
+				and k.warning_start_time&gt;to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.endTime!=null and queryConditionData.endTime!=''">
+				and k.warning_end_time&lt;=to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')
+			</if>
+			<if test=" queryConditionData.plateNumber!=null and queryConditionData.plateNumber!=''">
+				<choose>
+					<when test=" queryConditionData.plateNumber=='全部'">
+						and k.plate_number is null
+					</when>
+					<otherwise>
+						and k.plate_number like CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" queryConditionData.warningType!=null and queryConditionData.warningType!=''">
+				and k.warning_type=#{queryConditionData.warningType}
+			</if>
+			<if test=" queryConditionData.vehicleType!=null and queryConditionData.vehicleType!=''">
+				and k.vehicle_type=#{queryConditionData.vehicleType}
+			</if>
+			<if test=" queryConditionData.warningDealState!=null and queryConditionData.warningDealState!=''">
+				<choose>
+					<when test="queryConditionData.warningDealState==1">
+						and k.disposal_way = 0
+					</when>
+					<when test="queryConditionData.warningDealState==2">
+						and k.disposal_way = 1 or k.disposal_way = 2
+					</when>
+					<when test="queryConditionData.warningDealState==3">
+						and k.disposal_way = 3 or k.disposal_way = 4 or k.disposal_way = 5 or k.disposal_way = 6
+					</when>
+				</choose>
+			</if>
+		</where>
+		order by k.warning_start_time desc
+	</select>
+</mapper>

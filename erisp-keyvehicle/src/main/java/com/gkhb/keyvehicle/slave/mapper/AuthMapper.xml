@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.slave.mapper.AuthMapper">
+
+	<!-- 根据id查询用户名称 -->
+	<select id="queryUsernameById" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.Auth'>
+		SELECT U.FSTR_NAME,U.FSTR_DESC FROM UM_USER U WHERE FSTR_USERID = #{userId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据id查询分局名称 -->
+	<select id="queryDepNameById" parameterType="java.lang.String" resultType='java.lang.String'>
+		SELECT D.FSTR_NAME FROM TBL_DEPARTMENT D WHERE FSTR_DEPARTMENTID = #{depId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据id查询大队名称 -->
+	<select id="queryGroupNameById" parameterType="java.lang.String" resultType='java.lang.String'>
+		SELECT G.FSTR_NAME FROM TBL_GROUP G WHERE FSTR_GROUPID = #{groupId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 根据角色id查询模块ID -->
+	<select id="queryResourceIdById" parameterType="java.lang.String" resultType='java.lang.String'>
+		SELECT R.FSTR_RESOURCEID FROM UM_RL_RESOURCEANDROLE R WHERE FSTR_ROLEID = #{roleId,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- AND R.FSTR_RESOURCEID LIKE CONCAT('KV','%') -->
+	
+	<!-- 根据模块id查询模块名称 -->
+	<select id="queryResourceNameById" resultType='com.gkhb.keyvehicle.model.Resource'>
+		SELECT FSTR_NAME,FSTR_OPENMODE,FSTR_IMAGEURL FROM UM_RESOURCE 
+		WHERE 
+		FSTR_ID IN
+			<foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+				#{item}
+			</foreach> 
+	</select>
+</mapper>

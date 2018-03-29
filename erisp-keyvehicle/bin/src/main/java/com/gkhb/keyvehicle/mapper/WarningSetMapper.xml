@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 预警设置Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.WarningSetMapper">
+	<insert id="addWarningOverSpeed" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		INSERT INTO
+		KV_SPEED(
+		ID,
+		VEHICLE_TYPE,
+		HIGH_SPEED,
+		STATE,
+		VEHICLE_ID
+		) VALUES(
+		#{id,jdbcType=VARCHAR},
+		#{vehicleType,jdbcType=VARCHAR},
+		#{limitSpeed,jdbcType=INTEGER},
+		#{state,jdbcType=INTEGER},
+		(SELECT ID FROM KV_VEHICLE_INFO WHERE
+		PLATE_NUMBER=#{plateNumber,jdbcType=VARCHAR})
+		)
+	</insert>
+
+	<insert id="addWarningWrongTime" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		INSERT INTO
+		KV_TRAVEL_TIME(
+		ID,
+		VEHICLE_TYPE,
+		DRIVE_START_DATE,
+		DRIVE_END_DATE,
+		DRIVE_START_TIME,
+		DRIVE_END_TIME,
+		STATE,
+		VEHICLE_ID
+		) VALUES(
+		#{id,jdbcType=VARCHAR},
+		#{vehicleType,jdbcType=VARCHAR},
+		to_date(#{startDate},'YYYY-MM-DD'),
+		to_date(#{endDate},'YYYY-MM-DD'),
+		to_date(#{startTime},'HH24:mi:ss'),
+		to_date(#{endTime},'HH24:mi:ss'),
+		#{state,jdbcType=INTEGER},
+		(SELECT ID FROM KV_VEHICLE_INFO WHERE
+		PLATE_NUMBER=#{plateNumber,jdbcType=VARCHAR})
+		)
+	</insert>
+
+	<insert id="addWarningWrongRoute" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		INSERT INTO
+		KV_TRAVEL_ROUTE(
+		ID,
+		VEHICLE_TYPE,
+		VEHICLE_ROUTE,
+		STATE,
+		VEHICLE_ID
+		) VALUES(
+		#{id,jdbcType=VARCHAR},
+		#{vehicleType,jdbcType=VARCHAR},
+		#{warningRoute,jdbcType=BLOB},
+		#{state,jdbcType=INTEGER},
+		(SELECT ID FROM KV_VEHICLE_INFO WHERE
+		PLATE_NUMBER=#{plateNumber,jdbcType=VARCHAR})
+		)
+	</insert>
+
+	<insert id="addWarningFatigue" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		INSERT INTO
+		KV_FATIGUE_DRIVING(
+		ID,
+		VEHICLE_TYPE,
+		DRIVING_TIME,
+		STATE,
+		VEHICLE_ID
+		) VALUES(
+		#{id,jdbcType=VARCHAR},
+		#{vehicleType,jdbcType=VARCHAR},
+		#{drivingTime,jdbcType=INTEGER},
+		#{state,jdbcType=INTEGER},
+		(SELECT ID FROM KV_VEHICLE_INFO WHERE
+		PLATE_NUMBER=#{plateNumber,jdbcType=VARCHAR})
+		)
+	</insert>
+	<!-- 修改超速预警 -->
+	<update id="updateWarningOverSpeed" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		UPDATE
+		KV_SPEED
+		SET
+		HIGH_SPEED= #{limitSpeed,jdbcType=INTEGER}
+		WHERE
+		ID=#{id,jdbcType=VARCHAR}
+	</update>
+	<!-- 修改违规时间预警 -->
+	<update id="updateWarningWrongTime" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		UPDATE
+		KV_TRAVEL_TIME
+		SET
+		DRIVE_START_DATE=to_date(#{startDate},'YYYY-MM-DD'),
+		DRIVE_END_DATE= to_date(#{endDate},'YYYY-MM-DD'),
+		DRIVE_START_TIME= to_date(#{startTime},'HH24:mi:ss'),
+		DRIVE_END_TIME=to_date(#{endTime},'HH24:mi:ss')
+		WHERE
+		ID=#{id,jdbcType=VARCHAR}
+
+	</update>
+	<!-- 修改违规线路预警 -->
+	<update id="updateWarningWrongRoute" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		UPDATE
+		KV_TRAVEL_ROUTE
+		SET
+		VEHICLE_ROUTE = #{warningRoute,jdbcType=BLOB}
+		WHERE
+		ID=#{id,jdbcType=VARCHAR}
+
+	</update>
+	<!-- 修改疲劳驾驶预警 -->
+	<update id="updateWarningFatigue" parameterType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		UPDATE
+		KV_FATIGUE_DRIVING
+		SET
+		DRIVING_TIME = #{drivingTime,jdbcType=INTEGER}
+		WHERE
+		ID=#{id,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 预警查询 -->
+	<select id="queryWarningInfo" resultType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		SELECT temp_table.* FROM (
+		SELECT
+		travel_time.ID AS id,
+		'违规时间' AS warningType,
+		NVL(travel_time.VEHICLE_TYPE,' ') AS vehicleType,
+		NVL(vehicle.PLATE_NUMBER,' ') AS plateNumber,
+
+		(CASE WHEN travel_time.DRIVE_START_DATE IS NOT NULL AND
+		travel_time.DRIVE_END_DATE IS NOT NULL AND
+		travel_time.DRIVE_START_TIME IS NOT NULL AND
+		travel_time.DRIVE_END_TIME IS NOT NULL
+		THEN '设置违规日期为 '||to_char(travel_time.DRIVE_START_DATE,'yyyy-MM-dd')||' 到
+		'||to_char(travel_time.DRIVE_END_DATE,'yyyy-MM-dd')||' ,'||'违规时间为每天
+		'|| to_char(travel_time.DRIVE_START_TIME,'HH24:mi:ss')||' 到
+		'||to_char(travel_time.DRIVE_END_TIME,'HH24:mi:ss')
+		WHEN travel_time.DRIVE_START_DATE IS NULL AND travel_time.DRIVE_END_DATE
+		IS NULL AND travel_time.DRIVE_START_TIME IS NOT NULL AND
+		travel_time.DRIVE_END_TIME IS NOT NULL
+		THEN '设置违规时间为每天 '|| to_char(travel_time.DRIVE_START_TIME,'HH24:mi:ss')||'
+		到 '||to_char(travel_time.DRIVE_END_TIME,'HH24:mi:ss')
+		WHEN travel_time.DRIVE_START_DATE IS NOT NULL AND
+		travel_time.DRIVE_END_DATE IS NOT NULL AND
+		travel_time.DRIVE_START_TIME IS NULL AND travel_time.DRIVE_END_TIME IS
+		NULL
+		THEN '设置违规日期为 '||to_char(travel_time.DRIVE_START_DATE,'yyyy-MM-dd')||' 到
+		'||to_char(travel_time.DRIVE_END_DATE,'yyyy-MM-dd')
+		ELSE ''
+		END
+		) AS remark
+
+		FROM KV_TRAVEL_TIME travel_time
+		LEFT JOIN KV_VEHICLE_INFO vehicle
+		ON travel_time.VEHICLE_ID = vehicle.ID
+		<where>
+			<if
+				test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+				AND travel_time.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+			</if>
+			<if
+				test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+				AND vehicle.PLATE_NUMBER like
+				CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+			</if>
+			AND travel_time.STATE = 0
+		</where>
+		UNION ALL
+		SELECT
+		speed.ID AS id,
+		'超速' AS warningType,
+		NVL(speed.VEHICLE_TYPE,' ') AS vehicleType,
+		NVL(vehicle.PLATE_NUMBER,' ') AS plateNumber,
+		CONCAT(CONCAT('设置超速为 ',speed.HIGH_SPEED),' km/h') AS remark
+
+		FROM KV_SPEED speed
+		LEFT JOIN KV_VEHICLE_INFO vehicle
+		ON speed.VEHICLE_ID = vehicle.ID
+		<where>
+			<if
+				test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+				AND speed.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+			</if>
+			<if
+				test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+				AND vehicle.PLATE_NUMBER like
+				CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+			</if>
+			AND speed.STATE = 0
+		</where>
+		UNION ALL
+		SELECT
+		fatigue.ID AS id,
+		'疲劳驾驶' AS warningType,
+		NVL(fatigue.VEHICLE_TYPE,' ') AS vehicleType,
+		NVL(vehicle.PLATE_NUMBER,' ') AS plateNumber,
+		CONCAT(CONCAT('设置疲劳驾驶时间为 ',fatigue.DRIVING_TIME),' 小时') AS remark
+
+		FROM KV_FATIGUE_DRIVING fatigue
+		LEFT JOIN KV_VEHICLE_INFO vehicle
+		ON fatigue.VEHICLE_ID = vehicle.ID
+		<where>
+			<if
+				test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+				AND fatigue.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+			</if>
+			<if
+				test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+				AND vehicle.PLATE_NUMBER like
+				CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+			</if>
+			AND fatigue.STATE = 0
+		</where>
+		) temp_table
+	</select>
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 预警设置Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.WarningSignMapper">
+
+    <select id="queryALLWarningSign" parameterType="com.gkhb.keyvehicle.model.view.WarningSign">
+        SELECT T.* FROM KV_WARNING_SIGN T WHERE 1=1
+    </select>
+    
+    <!-- 高级搜索 -->
+	<select id="searchWarningInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.WarningSign'>
+		SELECT V.PLATE_NUMBER,V.PLATE_TYPE,E.* FROM KV_VEHICLE_INFO V,KV_EARLY_WARNING_INFO E
+		WHERE E.STATE = 0 
+		AND V.ID = E.VEHICLE_ID
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test=" queryConditionData.plateType != null and queryConditionData.plateType != '' ">
+			AND V.PLATE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.plateType}),'%')
+		</if>
+		<if test=" queryConditionData.signState != null and queryConditionData.signState != '' ">
+			AND E.SIGN_STATE LIKE CONCAT(CONCAT('%', #{queryConditionData.signState}),'%')
+		</if>
+	</select>
+	
+	<!-- 签收状态修改 -->
+	<update id="updateSignState">
+		update KV_EARLY_WARNING_INFO set
+		SIGN_STATE=1
+		where id in
+		<foreach collection="signView.idList" item="id" index="index"
+            open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</update>
+	
+</mapper>

@@ -1,0 +1,56 @@
+package com.gkhb.keyvehicle.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.model.DisposalProcess;
+
+
+/**
+ *	预警处置流程mapper
+ *	@author weidongping
+ *	@createTime 2017年9月7日 上午10:27:02
+ */
+@Repository
+public interface DisposalProcessMapper {
+	
+	/**
+	 * 添加预警处置流程
+	 * @param disposalprocess
+	 */
+	public void addDisposalProcess(DisposalProcess  disposalProcess);
+
+	
+	/**
+	 * 查询所有预警处置流程
+	 * @return
+	 */
+	public List<DisposalProcess> queryDisposalProcess();
+
+	/**
+	 * 修改预警处置流程
+	 * @param disposalprocess
+	 * @return
+	 */
+	public int updateDisposalProcess(DisposalProcess  disposalProcess);
+
+    /**
+     * 查询交管局部门预警处置
+     * @return
+     */
+    public List<DisposalProcess> queryJGJBMDisposalProcess(@Param("department")String department, Page page);
+
+    /**
+     * 查询行业主管部门预警处置
+     * @return
+     */
+    public List<DisposalProcess> queryHYBMDisposalProcess(@Param("department")String department, Page page);
+}
+
+	
+	
+
+

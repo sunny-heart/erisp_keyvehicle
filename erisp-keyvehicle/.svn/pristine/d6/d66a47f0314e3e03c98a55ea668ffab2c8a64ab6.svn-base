@@ -1,0 +1,274 @@
+app.controller('realLineMapCtrl', [
+       '$scope',
+       '$filter',
+       '$timeout',
+       '$state',
+       '$stateParams',
+       'warningMapService',
+       'mapService',
+       '$rootScope',
+       'SweetAlert',
+       '$interval',
+       //'$modalInstance',
+       //'params',
+       function($scope, $filter, $timeout, $state, $stateParams, warningMapService, mapService, $rootScope,SweetAlert, $interval/*,$modalInstance,params*/) {
+
+    	   $scope.hisParams=JSON.parse($stateParams.params);
+    	   var map;	//地图
+    	   var layerOfOnVehicle; //车辆图标图层
+    	   var realLocationRefresh; //定时刷新车辆位置
+    	   var haveShowLine = false; //标记是否打开了行驶轨迹
+    	   $scope.queryConditionData = {};
+    	   var hisRefresh = false;//车辆历史轨迹是否定时刷新，默认为false
+    	   var lineGrap; //轨迹图层
+    	   var pointGrap;
+    	   var showLineLength; //定义每次加载的历史轨迹长度
+    	   var departName = $rootScope.depName;
+    	   var date = new Date();
+    	   var startTime = date.Format("yyyy-MM-dd HH:mm:ss");
+    	   var returnRealLine;
+    	   var realLineInterval; //循环加点连线
+    	   var lineLength = 0;
+    	   var showLineEnd = false; //一次请求的数据gps是否完成连线
+    	   var lastLan;//上次请求的最后一个经度
+    	   var lastLon;//上次请求的最后一个纬度
+    	   var lastLongitude;//上一个GPS的经度--不一定是上次请求的
+    	   var lastLatitude;//上一个GPS的纬度--不一定是上次请求的
+    	   $scope.showAllTypeIco = true; //显示全部车辆类型图标注释
+
+    	   /**********************************地图图层显示start**********************************/
+    	   $scope.showMap = function(){
+    		   require([  
+    		            "esri/map", 
+    		            "esri/layers/ArcGISTiledMapServiceLayer", 
+    		            "esri/geometry/Extent", 
+    		            "esri/geometry/Point", 
+    		            "esri/geometry/Polyline", 
+    		            "esri/SpatialReference",  
+    		            "esri/symbols/SimpleMarkerSymbol",
+    		            "esri/symbols/PictureMarkerSymbol", 
+    		            "esri/symbols/SimpleLineSymbol", 
+    		            "esri/layers/GraphicsLayer", 
+    		            "esri/symbols/SimpleFillSymbol", 
+    		            "esri/lang",
+    		            "esri/Color", 
+    		            "dojo/dom-style",
+    		            "dijit/TooltipDialog", 
+    		            "dijit/popup", 
+    		            "esri/graphic"  
+    		            ], function(
+    		            		Map, 
+    		            		ArcGISTiledMapServiceLayer, 
+    		            		Extent, 
+    		            		Point, 
+    		            		Polyline, 
+    		            		SpatialReference, 
+    		            		SimpleMarkerSymbol,
+    		            		PictureMarkerSymbol, 
+    		            		SimpleLineSymbol, 
+    		            		GraphicsLayer, 
+    		            		SimpleFillSymbol, 
+    		            		esriLang,
+    		            		Color, 
+    		            		domStyle,
+    		            		TooltipDialog, 
+    		            		dijitPopup,
+    		            		Graphic) {
+    			   // BASE_SERVER配置移至app.js
+    			   map = new Map("map", {  
+    				   center: [104.0657754083, 30.6583098090],  
+//                              				   zoom: 4,//内网地图缩放等级
+    				   zoom: 14,
+    				   logo:false,
+    				   nav:false,
+    				   slider:false
+    			   }); 
+    			   var layer = new ArcGISTiledMapServiceLayer(BASE_SERVER);
+    			   map.addLayer(layer);
+
+    			   pointGrap = new GraphicsLayer();
+    			   map.addLayer(pointGrap);
+    			   
+    			   lineGrap = new GraphicsLayer();
+    			   map.addLayer(lineGrap);
+
+    		   });   
+    	   }
+    	   /**********************************地图图层显示end**********************************/
+
+    	   //查询某段时间内某辆车的历史轨迹信息
+    	   $scope.queryServiceLocation = function(plateNumber) {
+    		   showLineLength = 1;
+    		   var edate = new Date();
+    		   var endTime = edate.Format("yyyy-MM-dd HH:mm:ss");
+    		   $scope.hisLocations = [];
+    		   mapService.queryRealOrHisLocations(plateNumber,departName,startTime,endTime,function (data) {
+    			   //清空存储某段时间内某辆车的历史轨迹信息数组
+    			   //if (data.state == 200) {
+    			   if (data.status == 0) {
+//    				   console.log(startTime);
+//    				   console.log(endTime);
+//    				   console.log(data.datas.length);
+    				   //$scope.movePaths = eval(data.messageBody.movePaths);
+    				   $scope.movePaths = eval(data.datas);
+    				   var result = $scope.movePaths;
+    				   //对取到的集合按时间排序
+    			       result.sort(function(a,b){
+    			           return a.dateTime-b.dateTime;
+    			       });
+    				   for(var i=0;i<result.length;i++){
+    					   var location = "";
+    					   location = result[i].latitude+"-"+result[i].longitude+"-"+result[i].vehicleType+"-"+result[i].plateNumber;
+    					   $scope.hisLocations.push(location);
+    				   }
+    				   showLine(map);
+        			   startTime = endTime;
+    			   }
+    		   }, function (err) {
+    		   })
+    	   }
+    	   
+    	   $scope.toUpDown = function(showFlag,position){
+    			if(position == "down"){
+    				$scope.showAllTypeIco = showFlag;
+    			}else if(position == "up"){
+    				$scope.showUpTypeIco = showFlag;
+    			}
+    		}
+
+    	   //实时轨迹
+    	   function showLine(map){
+    		   haveShowLine = true; //标记行驶轨迹已打开
+    		   var hisLocations = $scope.hisLocations;	//包含车辆经纬度的字符串
+    		   lineLength = lineLength+hisLocations.length;
+    		   if(hisLocations.length > 0){
+    			   for(var i = 0;i<hisLocations.length;i++){
+    	        	   var paths = [];
+    				   var local = hisLocations[i].split("-");
+    				   //如果本条gps跟上个GPS一样则不加点连线
+		    	       if(lastLongitude!=local[0] || lastLatitude!=local[1]){
+	    				   var his = [];
+	    				   var his2 = [];
+	    				   if(lastLan!=undefined && lastLan!=""){
+	    					   his[0] = lastLan;
+		    				   his[1] = lastLon;
+		    				   his2[0] = local[1]*1;
+		    				   his2[1] = local[0]*1;
+		    				   paths.push(his);
+		    				   paths.push(his2);
+	    				   }else{
+		    				   his[0] = local[1]*1;
+		    				   his[1] = local[0]*1;
+		    				   paths.push(his);
+	    				   }
+	    				   if(i==hisLocations.length-1){
+	    					   lastLan = local[1]*1;
+	    					   lastLon = local[0]*1;
+	    				   }else{
+	    					   lastLan = "";
+		    				   lastLon = "";
+	    				   }
+	//    				   console.log(paths);
+	    				   //在地图上连线
+	    	    		   polylineJson={"paths": [paths],"spatialReference":{"wkid":4326}}; 
+	    	    		   var graphicsLayer = new esri.layers.GraphicsLayer();//添加线的图层，方便清除上一个图层所画的线
+	    	    		   pointGrap.clear();
+	    	    		   var polyline=new esri.geometry.Polyline(polylineJson);
+	    	    		   var sys=new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID,new esri.Color([0,0,255]),3);
+	    	    		   var graphic2=new esri.Graphic(polyline,sys);
+	    	    		   lineGrap.add(graphic2);
+	    	    		   
+	        			   if(local[2] == "A1"){
+	        				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/new-energy-vehicle-online-90.png",21,21);
+	        			   }else if(local[2] == "A2"){
+	        				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/dangerous-goods-vehicle-online-90.png",21,21);
+	        			   }else if(local[2] == "A3"){
+	        				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/cold-chain-vehicle-online-90.png",21,21);
+	        			   }else if(local[2] == "A4"){
+	        				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/ordinary-vehicle-online-90.png",21,21);
+	        			   }else if(local[2] == "B"){
+		    				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/taxi/taxi-90.png",21,21);
+		    			   }else if(local[2] == "C"){
+		    				   var pic = new esri.symbol.PictureMarkerSymbol("assets/images/bus/bus-90.png",21,21);
+		    			   }
+	        			   var pt = new esri.geometry.Point(local[1]*1,local[0]*1);//创建一个点对象
+	        			   var attr = {"vehicleType":local[2]*1,"plateNumber":local[3]*1};
+	        			   //var infoTemplate = new esri.InfoTemplate("车牌号码：${plateNumber}","车辆类型：${vehicleType}");
+	        			   var gp = new esri.Graphic(pt,pic,attr);//设置样式
+	        			   var pn = local[3];
+	        			   var textgraph = new esri.Graphic(pt,new esri.symbol.TextSymbol(pn).setOffset(20, 10));
+	        			   pointGrap.add(gp);//添加到图层中       
+	        			   pointGrap.add(textgraph);
+	        			   
+	        			   var centerPoint = new esri.geometry.Point(local[1]*1,local[0]*1);
+	//        			   map.centerAndZoom(centerPoint,14);
+	        			   map.centerAt(centerPoint);
+		    	       }
+    	    	   }
+    		   }
+    	   };
+    	   
+    	   returnRealLine = $interval(function() {
+    		   $scope.queryServiceLocation($scope.hisParams.plateNumber);
+    	   },2000);
+
+    	   $scope.convertVehicleType = function(type){
+    		   if(type!=undefined && type!=""){
+    			   switch(type)
+    			   {
+    			   case 'A1':
+    				   return "新能源";
+    				   break;
+    			   case 'A2':
+    				   return "冷链车"
+    				   break;
+    			   case 'A3':
+    				   return "危化品"
+    				   break;
+    			   case 'A4':
+    				   return "普通车"
+    				   break;
+    			   }
+    		   }
+    	   }
+
+    	   //取消
+    	   $scope.cancel = function(params) {
+    		   //$modalInstance.dismiss('cancel');
+    		   if(params.type=="map"){
+    	    		$state.go('app.map.cargoMap',{params:JSON.stringify(params)});
+    	       }else if(params.type=="warningMap"){
+    	    		//$state.go('app.warningDisposal.warningMap',{params:$stateParams.params});
+    	    		$state.go('app.warningDisposal.warningMap',{params:JSON.stringify(params)});
+    	       }else if(params.type=="busMap"){
+    	    		$state.go('app.map.busMap',{params:JSON.stringify(params)});
+    	       }else if(params.type=="taxiMap"){
+    	    		$state.go('app.map.taxiMap',{params:JSON.stringify(params)});
+    	       }
+    	   };
+    	   
+    	    //确保关闭页面或浏览器后销毁定时器
+    	    $scope.$on('$destroy',function(){  
+    	    	$interval.cancel(returnRealLine);
+    	    })
+
+    	   $scope.showMap();
+    	   $scope.queryServiceLocation($scope.hisParams.plateNumber);
+
+       } ]);
+
+Date.prototype.Format = function (fmt) {    
+	var o = {    
+			"M+": this.getMonth() + 1, //月份     
+			"d+": this.getDate(), //日     
+			"H+": this.getHours(), //小时     
+			"m+": this.getMinutes(), //分     
+			"s+": this.getSeconds(), //秒     
+			"q+": Math.floor((this.getMonth() + 3) / 3), //季度     
+			"S": this.getMilliseconds() //毫秒     
+	};    
+	if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));    
+	for (var k in o)    
+		if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));    
+	return fmt;    
+} 

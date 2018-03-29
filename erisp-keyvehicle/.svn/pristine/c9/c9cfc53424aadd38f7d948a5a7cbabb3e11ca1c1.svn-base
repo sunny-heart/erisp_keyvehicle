@@ -1,0 +1,24 @@
+package com.gkhb.keyvehicle.service.etl;
+
+import com.gkhb.keyvehicle.service.VehicleOnlineStateService;
+
+/**
+ * 车辆在线状态拉取线程类
+ * 
+ * @author eddy
+ */
+public class ETLRunnableForVehicleState implements Runnable {
+
+	private VehicleOnlineStateService vehicleOnlineStateService;
+
+    public ETLRunnableForVehicleState(VehicleOnlineStateService vehicleOnlineStateService) {
+        this.vehicleOnlineStateService = vehicleOnlineStateService;
+    }
+
+    @Override
+    public void run() {
+    	System.out.println("------在线离线更新--定时任务开始了-------");
+    	vehicleOnlineStateService.addOrUpdateVehicleOnlineState();
+    }
+
+}

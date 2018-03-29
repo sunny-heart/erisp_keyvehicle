@@ -1,0 +1,64 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.common.utils.JsonUtils;
+import com.gkhb.keyvehicle.model.DisposalProcess;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.WarningDisposalView;
+import com.gkhb.keyvehicle.service.WarningDisposalService;
+
+/**
+ * 处置流程控制器类
+ * 
+ * @author 张顺江
+ * @createTime 2017年9月11日 下午10:46:00
+ */
+@Controller
+@RequestMapping(("/warningDisposal"))
+public class WarningDisposalController extends BaseController {
+
+    @Autowired
+    WarningDisposalService warningDisposalService;
+
+    /**
+     * 根据用户类型和部门名称获取预警处置信息
+     * 
+     * @return Model 返回类型
+     */
+    @RequestMapping(value = "/queryWarningDisposalViewList", method = RequestMethod.GET)
+    public Model queryWarningDisposalViewList(QueryConditionData queryConditionData) {
+        Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        List<WarningDisposalView> warningDisposalViewList = warningDisposalService.queryDisposalProcess(queryConditionData.getUserType(), queryConditionData.getDepartment(), page, queryConditionData.getVehicleType());
+        model.addAttribute("warningDisposalViewList", warningDisposalViewList);
+        model.addAttribute("total", page.getCount());
+        model.addAttribute("currentPage", page.getPage());
+        model.addAttribute("pages", page.getPages());
+        return model;
+    }
+
+    /**
+     * 更新预警处置流程
+     * 
+     * @return Model 返回类型
+     */
+    @RequestMapping(value = "/updateDisposalProcess", method = RequestMethod.POST)
+    public Model updateDisposalProcess(String disposalProcessJsonStr) {
+        DisposalProcess disposalProcess = (DisposalProcess) JsonUtils.json2Object(disposalProcessJsonStr, DisposalProcess.class); 
+        Model model = new ExtendedModelMap();
+        boolean state = warningDisposalService.updateDisposalProcess(disposalProcess);
+        model.addAttribute("state", state);
+        return model;
+    }
+
+}

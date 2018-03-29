@@ -1,0 +1,95 @@
+/**
+ * 按主管部门统计报表
+ */
+app.controller('reportsByDepartmentController', ['$scope','$rootScope','$state','$modal', '$log','$filter','SweetAlert','reportsService','$interval','SweetAlert','$timeout',
+  function($scope, $rootScope, $state, $modal, $log,$filter,SweetAlert,reportsService,$interval,SweetAlert,$timeout) {
+	
+	 $scope.queryConditionData = {};
+	 $scope.queryConditionData.subofficeName = $rootScope.departName;
+	 //根据主管部门统计
+	 $scope.countByDepartments = function(){
+		 var myDate = new Date();
+		 //获取当前年
+		 var year=myDate.getFullYear();
+		 //获取当前月
+		 var month=myDate.getMonth()+1;
+		 if(month<10){month="0"+month;}
+		 var currentStartTime = year+"-01";
+		 var currentEndTime = year+"-"+month;
+		 if($("#startTime").val().trim().length>0){
+			 $scope.queryConditionData.startTime = $("#startTime").val();
+		 }else{
+			 $scope.queryConditionData.startTime = currentStartTime;
+			 $scope.queryConditionData.endTime = currentEndTime;
+			 $("#startTime").val(currentStartTime);
+			 $("#endTime").val(currentEndTime);
+		 }
+		 if($("#endTime").val().trim().length>0){
+			 $scope.queryConditionData.endTime = $("#endTime").val();
+		 }
+		 reportsService.countByDepartments($scope.queryConditionData,function (data) {
+	            if (data.state == 200) {
+	            	$scope.listByDepartments = data.messageBody.listByDepartments;
+	            	var map = $scope.listByDepartments;
+	            	$("#countsTable tbody").empty();
+	            	if(map!=undefined){
+		            	$.each(map,function(key,values){     
+		            		for(var i=0;i<values.length;i++){
+		            			if(i==0){
+		            				var newRow="<tr>"+
+		    						"<td rowspan='"+values.length+"'>"+key+"</td>"+
+		    						"<td>"+values[i].competentAuthority+"</td>"+
+		    						"<td>"+convertWarningType(values[i].warningType)+"</td>"+
+		    						"<td>"+values[i].warningCounts+"</td>"+
+		    					    "</tr>";
+		            				$("#countsTable tbody").append(newRow);
+		            			}else{
+		            				var newRow="<tr>"+
+		            				"<td>"+values[i].competentAuthority+"</td>"+
+		    						"<td>"+convertWarningType(values[i].warningType)+"</td>"+
+		    						"<td>"+values[i].warningCounts+"</td>"+
+		    					    "</tr>";
+		            				$("#countsTable tbody").append(newRow);
+		            			}
+		            		}
+		            	 }); 
+	            	}
+	            }
+         }, function (err) {
+         })
+	  }
+	 
+	 $scope.show = function(){
+		 $(".all").hide();
+		 $(".search").show();
+	 }
+	 
+	 function convertWarningType(warningType){
+			switch(warningType)
+			{
+				case "1":
+					return "违规路线行驶";
+					break;
+				case "2":
+					return "违规时间行驶";
+					break;
+				case "3":
+					return "超速行驶";
+					break;
+				case "4":
+					return "疲劳驾驶";
+					break;
+			}
+		}
+	 
+	 //模态窗口出不来加了个延时
+	 $timeout(function(){
+		$(".form_datetime").datetimepicker({
+			lang:'ch',
+			timepicker:false,
+			format:'Y-m'
+		});
+	},500);
+	 
+	 $scope.countByDepartments();
+}]);

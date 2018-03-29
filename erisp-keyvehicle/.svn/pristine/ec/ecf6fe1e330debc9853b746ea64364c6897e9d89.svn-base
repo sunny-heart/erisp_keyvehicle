@@ -1,0 +1,102 @@
+package com.gkhb.keyvehicle.controller;
+
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.common.utils.SystemUtils;
+import com.gkhb.keyvehicle.model.WarningRule;
+import com.gkhb.keyvehicle.service.WarnRuleService;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 预警规则控制器
+ *
+ * @author touxin
+ * @data 2017年9月23日
+ */
+@Controller
+@RequestMapping(("/warningRule"))
+public class WarningRuleController extends BaseController {
+
+    @Autowired
+    private WarnRuleService warnRuleService;
+
+    /**
+     * 添加预警规则
+     *
+     * @param warningRule
+     * @return
+     */
+    @RequestMapping(value = {"/addSpeedRule", "addTimeAreaRule", "addTiredRule"}, method = RequestMethod.POST)
+    public Model addRule(WarningRule warningRule) {
+        int count = 0;
+        Model model = new ExtendedModelMap();
+        try {
+            if (StringUtils.isBlank(warningRule.getId())) {
+                warningRule.setId(SystemUtils.createUuid());
+                warningRule.setCreateTime(new Date());
+                warningRule.setUpdateTime(new Date());
+            }
+            count = warnRuleService.add(warningRule);
+            model.addAttribute("result", count);
+            model.addAttribute("id", warningRule.getId());
+        } catch (Exception e) {
+            model.addAttribute("result", count);
+        }
+        return model;
+    }
+
+    /**
+     * 修改预警规则
+     *
+     * @param warningRule
+     * @return
+     */
+    @RequestMapping(value = "/updateRule", method = RequestMethod.POST)
+    public Model updateRule(WarningRule warningRule) {
+        Model model = new ExtendedModelMap();
+        int count = 0;
+        if (StringUtils.isNotBlank(warningRule.getId())) {
+            count = warnRuleService.update(warningRule);
+            model.addAttribute("id", warningRule.getId());
+        }
+        model.addAttribute("result", count);
+        return model;
+    }
+
+    @RequestMapping(value = "/queryWarningRuleList", method = RequestMethod.GET)
+    public Model queryWarningRuleList(WarningRule warningRule) {
+        Model model = new ExtendedModelMap();
+        try {
+            List<WarningRule> warningRules = warnRuleService.queryWarningRule(warningRule);
+            model.addAttribute("warningRuleList", warningRules);
+            /*Page page = new Page(queryConditionData);
+			model.addAttribute("total", page.getCount());
+			model.addAttribute("currentPage", page.getPage());
+			model.addAttribute("pages", page.getPages());*/
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+    @RequestMapping(value = "/deleteWarningRule", method = RequestMethod.POST)
+    public Model deleteWarningRule(WarningRule warningRule) {
+        Model model = new ExtendedModelMap();
+        int count = 0;
+        try {
+            count = warnRuleService.delete(warningRule);
+        } catch (Exception e) {
+
+        }
+        model.addAttribute("result", count);
+        return model;
+    }
+}

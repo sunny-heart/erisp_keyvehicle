@@ -1,0 +1,126 @@
+app.factory("warningCopyService",["$http",function($http) {
+	
+		// GET预警查询
+    	function queryEarlyWaringInfoList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/queryEarlyWaringInfoList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// GET事故查询
+    	function queryAccidentInfoList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/queryAccidentInfoList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// GET违法查询
+    	function queryIllegalInfoList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/queryIllegalInfoList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	//导出预警信息
+    	function exportWarningInfoExcel(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/exportWarningInfoExcel";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// GET预警查询(不分页)
+    	function queryEarlyWaringInfoListCounts(params,success,error) {
+    		var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/queryEarlyWaringInfoListCounts";
+    		$http({
+    			url : dataUrl,
+    			method : "GET",
+    			params : params
+    		}).success(function(data) {
+    			success(data);
+    		}).error(function(data) {
+    			error(data)
+    		});
+    	}
+    	
+    	// 根据预警Id查询预警处置信息，预警信息，车辆信息
+    	function queryOneWarningDisposalInfo(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/warningDisposal/queryOneWarningDisposalInfo";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : {warningId:params}
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// 修改抄报状态
+    	function updateJgCcState(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/disposalProcess/updateJgCcState";
+            $http({
+                url : dataUrl,
+                method : "POST",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	//查询物流车所属企业
+    	function queryVehicleInfoAscriptionCompany(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/ascriptionCompany/queryVehicleInfoAscriptionCompany";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+	    return {
+	    	queryEarlyWaringInfoList:queryEarlyWaringInfoList,
+	    	queryAccidentInfoList:queryAccidentInfoList,
+	    	queryIllegalInfoList:queryIllegalInfoList,
+	    	exportWarningInfoExcel:exportWarningInfoExcel,
+	    	queryEarlyWaringInfoListCounts:queryEarlyWaringInfoListCounts,
+	    	queryOneWarningDisposalInfo:queryOneWarningDisposalInfo,
+	    	updateJgCcState:updateJgCcState,
+	    	queryVehicleInfoAscriptionCompany:queryVehicleInfoAscriptionCompany
+	    }
+    }
+])

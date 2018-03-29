@@ -1,0 +1,118 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown" style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="warningRuleController">
+		<div class="title_text" style="display:inline-block;width:100%;">时间区域预警规则录入
+			<button type="button" class="btn pams_query" style="float:right" ng-click="saveTimeAreaRule()">
+				<span>保存</span>
+			</button>
+		</div>
+		<div data-ng-init="loadRuleData()"></div>
+			<div class="title_line"></div>
+			<div class="row-fluid">
+			<table
+				class="table table-hover table-bordered table-responsive pams_table">
+				<input type="hidden" id="TRuleId" ng-model="ruleData.id">
+				<input type="hidden" name="ruleType" value="TIRED" ng-init="ruleData.ruleType='TIME_AREA'">
+				<tr>
+					<td class="center" style="background:#f2f2f2">规则名称</td>
+					<td class="left table-td" colspan="3">
+						<input type="text" name="ruleName" ng-model="ruleData.name" maxlength="50" style="width: 500px">
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">车辆类型</td>
+					<td class="left table-td">
+						<div ng-repeat="s in carTypeList[0].items" style="display: inline-block;">
+							<div ng-if="s.id !== null || s.id !== ''">
+								<input id="vehicleType{{s.id}}" type="checkbox" name="vehicleType" value="{{s.id}}" ng-checked="isCheck(s.id, ruleData.vehicleType)">
+								<label for="vehicleType{{s.id}}" style="margin-right: 16px;">{{s.name}}</label>
+							</div>
+						</div>
+					</td>
+					<td class="center" style="background:#f2f2f2">牌照类型</td>
+					<td class="left table-td">
+						<div ng-repeat="s in carPlateTypeList" style="display: inline-block;">
+							<div ng-if="ruleData.vehiclePlateType === undefined">
+								<div ng-init="ruleData.vehiclePlateType = '01'"></div>
+							</div>
+							<input id="vehiclePlateType{{s.id}}" type="radio" name="vehiclePlateType" value="{{s.id}}" ng-model="ruleData.vehiclePlateType">
+							<label for="vehiclePlateType{{s.id}}" style="margin-right: 16px;">{{s.name}}</label>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">入城证</td>
+					<td class="left table-td" colspan="3">
+						<div ng-repeat="s in cityCards" style="display: inline-block;">
+							<input id="cityCard{{s.id}}" type="checkbox" name="cityCard" value="{{s.id}}" ng-checked="isCheck(s.id, ruleData.rule[0].cityCard)">
+							<label for="cityCard{{s.id}}" style="margin-right: 16px;">{{s.name}}</label>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">时间范围</td>
+					<td class="left table-td" colspan="3">
+						<div data-ng-init="initTimeRange()"></div>
+						<div ng-if="ruleData.rule[0].timeRange.length > 0" style="display: inline-block;width: 40%">
+							<div ng-repeat="r in ruleData.rule[0].timeRange track by $index" on-finish-render-filters style="margin-top: 4px">
+								<select style="width: 40%;" ng-model="ruleData.rule[0].timeRange[$index].start" onchange="onSelectStartTimeRange(this)">
+									<option value="00:00">00:00</option><option value="01:00">01:00</option><option value="02:00">02:00</option>
+									<option value="03:00">03:00</option><option value="04:00">04:00</option><option value="05:00">05:00</option>
+									<option value="06:00">06:00</option><option value="07:00">07:00</option><option value="08:00">08:00</option>
+									<option value="09:00">09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option>
+									<option value="12:00">12:00</option><option value="13:00">13:00</option><option value="14:00">14:00</option>
+									<option value="15:00">15:00</option><option value="16:00">16:00</option><option value="17:00">17:00</option>
+									<option value="18:00">18:00</option><option value="19:00">19:00</option><option value="20:00">20:00</option>
+									<option value="21:00">21:00</option><option value="22:00">22:00</option><option value="23:00">23:00</option>
+									<option value="24:00">24:00</option>
+								</select>&nbsp;时&nbsp;&nbsp;至&nbsp;
+								<select style="width: 40%;" ng-model="ruleData.rule[0].timeRange[$index].end" onchange="onSelectEndTimeRange(this)">
+									<option value="00:00">00:00</option><option value="01:00">01:00</option><option value="02:00">02:00</option>
+									<option value="03:00">03:00</option><option value="04:00">04:00</option><option value="05:00">05:00</option>
+									<option value="06:00">06:00</option><option value="07:00">07:00</option><option value="08:00">08:00</option>
+									<option value="09:00">09:00</option><option value="10:00">10:00</option><option value="11:00">11:00</option>
+									<option value="12:00">12:00</option><option value="13:00">13:00</option><option value="14:00">14:00</option>
+									<option value="15:00">15:00</option><option value="16:00">16:00</option><option value="17:00">17:00</option>
+									<option value="18:00">18:00</option><option value="19:00">19:00</option><option value="20:00">20:00</option>
+									<option value="21:00">21:00</option><option value="22:00">22:00</option><option value="23:00">23:00</option>
+									<option value="24:00">24:00</option>
+								</select>&nbsp;时
+							</div>
+						</div>
+						<div class="btn pams_query" ng-click="addTimeRange()" style="display: inline-block; font-size: x-large; font-weight: 900; color: cornflowerblue; line-height: 20px; width: 40px;">+</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">区域权限</td>
+					<td class="left table-td" colspan="3">
+						<select name="mapAreaAuthority" ng-model="ruleData.rule[0].mapAreaAuthority">
+							<option value="1">允许进入</option>
+							<option value="0">禁止进入</option>
+						</select>
+						<div style="display: inline-block">
+							<button type="button" class="btn" ng-click="selectMapArea()">绘制区域</button>
+							<button type="button" class="btn" ng-click="clearMapArea()">清除区域</button>
+							<input id="ringRoad1" style="vertical-align: sub" type="checkbox" ng-model="ringRoad1" ng-click="ringRoadCheckChange($event)">
+							<label for="ringRoad1" style="margin-left: 2px;margin-right: 16px">一环以内</label>
+							<input id="ringRoad2" style="vertical-align: sub" type="checkbox" ng-model="ringRoad2" ng-click="ringRoadCheckChange($event)">
+							<label for="ringRoad2" style="margin-left: 2px;margin-right: 16px">一环至二环</label>
+							<input id="ringRoad3" style="vertical-align: sub" type="checkbox" ng-model="ringRoad3" ng-click="ringRoadCheckChange($event)">
+							<label for="ringRoad3" style="margin-left: 2px;margin-right: 16px">二环至三环</label>
+							<input id="ringRoad4" style="vertical-align: sub" type="checkbox" ng-model="ringRoad4" ng-click="ringRoadCheckChange($event)">
+							<label for="ringRoad4" style="margin-left: 2px;margin-right: 16px">三环至四环</label>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td class="center" style="background:#f2f2f2">区域范围</td>
+					<td class="left table-td" style="height: 600px" colspan="3">
+						<div ng-if="(ruleData.rule === undefined) || (ruleData.rule[0] === undefined)">
+							<div ng-init="ruleData.rule = [{}]"></div>
+						</div>
+						<input type="hidden" ng-model="ruleData.rule[0].area">
+						<div id="map" data-ng-init="showMap();"></div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</div>

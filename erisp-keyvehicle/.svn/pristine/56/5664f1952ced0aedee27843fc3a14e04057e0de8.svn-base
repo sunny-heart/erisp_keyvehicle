@@ -1,0 +1,191 @@
+package com.gkhb.keyvehicle.model.view;
+
+/*
+ * 预警信息返回类
+ * 
+ */
+public class EarlyWarningInfoView {
+
+	/**
+	 * 预警信息id
+	 */
+	private String id;
+	/**
+	 * 预警类型
+	 */
+	private String warningType;
+	/**
+	 * 车牌号码
+	 */
+	private String plateNumber;
+	/**
+	 * 车辆种类--大类
+	 */
+	private String vehicleBigType;
+	/**
+	 * 车辆类型
+	 */
+	private String vehicleType;
+	/**
+	 * 预警时间
+	 */
+	private String warningStartTime;
+	/**
+	 * 预警信息
+	 */
+	private String warningInfo;
+	/**
+	 * 处置状态
+	 */
+	private String warningDealState;
+	/**
+	 * 抄报状态
+	 */
+	private String jgCcState;
+	/**
+	 * 
+	 * 车辆总数
+	 */
+    private long vehicleTotal;
+    /**
+     * 当前在线车辆
+     */
+    private long currentOnlineTotal;
+    /**
+     * 在线率
+     */
+    private double currentOnlineRate;
+    /**
+     * 预警总数
+     */
+    private long warningTotal;
+    /**
+     * 今日预警数
+     */
+    private long todayWarningTotal;
+    /**
+     * 今日预警率
+     */
+    private double todayWarningRate;
+    
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getWarningType() {
+		return warningType;
+	}
+
+	public void setWarningType(String warningType) {
+		this.warningType = warningType;
+	}
+
+	public String getPlateNumber() {
+		return plateNumber;
+	}
+
+	public void setPlateNumber(String plateNumber) {
+		this.plateNumber = plateNumber;
+	}
+
+	public String getVehicleBigType() {
+		return vehicleBigType;
+	}
+
+	public void setVehicleBigType(String vehicleBigType) {
+		this.vehicleBigType = vehicleBigType;
+	}
+
+	public String getVehicleType() {
+		return vehicleType;
+	}
+
+	public void setVehicleType(String vehicleType) {
+		this.vehicleType = vehicleType;
+	}
+
+	public String getWarningStartTime() {
+		return warningStartTime;
+	}
+
+	public void setWarningStartTime(String warningStartTime) {
+		this.warningStartTime = warningStartTime;
+	}
+
+	public String getWarningInfo() {
+		return warningInfo;
+	}
+
+	public void setWarningInfo(String warningInfo) {
+		this.warningInfo = warningInfo;
+	}
+
+	public String getWarningDealState() {
+		return warningDealState;
+	}
+
+	public void setWarningDealState(String warningDealState) {
+		this.warningDealState = warningDealState;
+	}
+
+	public String getJgCcState() {
+		return jgCcState;
+	}
+
+	public void setJgCcState(String jgCcState) {
+		this.jgCcState = jgCcState;
+	}
+
+	public void setVehicleTotal(long vehicleTotal) {
+		this.vehicleTotal = vehicleTotal;
+	}
+
+	public void setCurrentOnlineTotal(long currentOnlineTotal) {
+		this.currentOnlineTotal = currentOnlineTotal;
+	}
+
+	public void setWarningTotal(long warningTotal) {
+		this.warningTotal = warningTotal;
+	}
+
+	public void setTodayWarningTotal(long todayWarningTotal) {
+		this.todayWarningTotal = todayWarningTotal;
+	}
+
+	public long getVehicleTotal() {
+		return vehicleTotal;
+	}
+	
+	public long getWarningTotal() {
+		return warningTotal;
+	}
+	
+	public long getTodayWarningTotal() {
+		return todayWarningTotal;
+	}
+	
+	public double getTodayWarningRate() {
+		return todayWarningRate;
+	}
+
+	public long getCurrentOnlineTotal() {
+		return currentOnlineTotal;
+	}
+
+	public double getCurrentOnlineRate() {
+		return currentOnlineRate;
+	}
+
+	public void setCurrentOnlineRate(double currentOnlineRate) {
+		this.currentOnlineRate = currentOnlineRate;
+	}
+
+	public void setTodayWarningRate(double todayWarningRate) {
+		this.todayWarningRate = todayWarningRate;
+	}
+
+}

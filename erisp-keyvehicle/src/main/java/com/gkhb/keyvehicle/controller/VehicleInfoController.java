@@ -1,0 +1,253 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.common.spring.ModelMapFactory;
+import com.gkhb.keyvehicle.common.utils.DateUtils;
+import com.gkhb.keyvehicle.common.utils.JsonUtils;
+import com.gkhb.keyvehicle.model.VehicleInfo;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.VehicleInfoView;
+import com.gkhb.keyvehicle.service.VehicleInfoService;
+
+
+/**
+ *	车辆信息控制器
+ *	@author Colin
+ *	@createTime 2017年7月3日 上午11:28:29
+ */
+@Controller
+@RequestMapping("/vehicleInfo")
+public class VehicleInfoController extends BaseController{
+	
+	@Autowired
+	private VehicleInfoService vehicleInfoService;
+	
+	/**
+	 * 分页查询车辆信息
+	 * @param queryConditionData
+	 * @return
+	 */
+    @RequestMapping(value = "/queryVehicleInfo" , method = RequestMethod.GET)
+    public Model queryVehicleInfo(QueryConditionData queryConditionData){
+        Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        List<VehicleInfoView> vehicleInfoList = vehicleInfoService.queryVehicleInfo(queryConditionData,page);
+        for (VehicleInfoView vehicleInfoView : vehicleInfoList) {
+			Integer accidentTotal = vehicleInfoService.countAccidentTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+			Integer illegalTotal = vehicleInfoService.countIllegalTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+			vehicleInfoView.setAccidentTotal(accidentTotal!=null?accidentTotal.intValue():0);
+			vehicleInfoView.setIllegalTotal(illegalTotal!=null?illegalTotal.intValue():0);
+		}
+        model.addAttribute("vehicleInfo", vehicleInfoList);
+        model.addAttribute("page", page);
+        return model;
+    }
+    
+    /**
+     * 分页查询预警车辆信息
+     * @param queryConditionData
+     * @return
+     */
+    @RequestMapping(value = "/queryWarningVehicleInfo" , method = RequestMethod.GET)
+    public Model queryWarningVehicleInfo(QueryConditionData queryConditionData){
+    	Model model = new ExtendedModelMap();
+    	Page page = new Page(queryConditionData);
+    	List<VehicleInfoView> vehicleInfoList = vehicleInfoService.queryWarningVehicleInfo(queryConditionData,page);
+    	for (VehicleInfoView vehicleInfoView : vehicleInfoList) {
+    		Integer accidentTotal = vehicleInfoService.countAccidentTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+    		Integer illegalTotal = vehicleInfoService.countIllegalTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+    		vehicleInfoView.setAccidentTotal(accidentTotal!=null?accidentTotal.intValue():0);
+    		vehicleInfoView.setIllegalTotal(illegalTotal!=null?illegalTotal.intValue():0);
+    	}
+    	model.addAttribute("vehicleInfo", vehicleInfoList);
+    	model.addAttribute("page", page);
+    	return model;
+    }
+    
+    /**
+     * 查询所有车辆信息
+     * @return
+     */
+    @RequestMapping(value = "/query" , method = RequestMethod.GET)
+    public Model query(){
+        Model model = new ExtendedModelMap();
+        List<VehicleInfoView> vehicleInfoList = vehicleInfoService.queryVehicle();
+        model.addAttribute("vehicleInfoList", vehicleInfoList);
+        return model;
+    }
+    
+    /**
+     * 删除车辆信息
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/deleteVehicleInfoById", method = RequestMethod.POST)
+    public Model deleteVehicleInfoById(String id) {
+	    boolean result = vehicleInfoService.deleteVehicleInfoById(id);
+	    return ModelMapFactory.buildModelMap("result", result);
+    }
+    
+    /**
+     * 添加或者修改车辆信息
+     * @param vehicleInfoJsonStr
+     * @return
+     * @throws ParseException 
+     */
+    @RequestMapping(value = "/addOrUpdateVehicleInfo", method = RequestMethod.POST)
+    public Model addOrUpdateVehicleInfo(String vehicleInfoJsonStr) throws ParseException {
+    	VehicleInfo vehicleInfo = (VehicleInfo) JsonUtils.json2Object(vehicleInfoJsonStr, VehicleInfo.class); 
+    	String registrationDate = JsonUtils.getJsonString(vehicleInfoJsonStr, "registrationDate");
+    	//将页面输入时间转化为Date格式
+    	Date registrationD = DateUtils.formatDate(registrationDate, DateUtils.YYYY_MM_DD);
+    	//将转换之后的注册时间保存到vehicleInfo对象当中
+    	vehicleInfo.setRegistrationDate(registrationD);
+    	int result = vehicleInfoService.addOrUpdateVehicleInfo(vehicleInfo);
+    	return ModelMapFactory.buildModelMap("result", result);
+    }
+    
+    /**
+     * 根据车牌号码分页查询车辆信息
+     * @param plateNumber
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoByPlateNumber" , method = RequestMethod.GET)
+    public Model queryVehicleInfoByPlateNumber(QueryConditionData queryConditionData){
+        Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        List<VehicleInfoView> vehicleInfoList = 
+        		vehicleInfoService.searchVehicleInfo(queryConditionData,page);
+        model.addAttribute("vehicleInfoList", vehicleInfoList);
+        model.addAttribute("page", page);
+        return model;
+    }
+    
+    /**
+     * 根据车辆类型查询所有的车辆信息
+     * @param plateNumber
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoByVehicleType" , method = RequestMethod.GET)
+    public Model queryVehicleInfoByVehicleType(QueryConditionData queryConditionData,String vehicleType){
+    	Model model = new ExtendedModelMap();
+    	List<VehicleInfoView> VehicleInfoViewList = 
+    			vehicleInfoService.searchVehicleInfoByVehicleType(queryConditionData, vehicleType);
+    	model.addAttribute("VehicleInfoViewList", VehicleInfoViewList);
+    	return model;
+    }
+    
+    /**
+     * 根据id查询车辆信息
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoById", method = RequestMethod.GET)
+    public Model queryVehicleInfoById(String id) {
+    	Model model = new ExtendedModelMap();
+	    VehicleInfo vehicleInfo = vehicleInfoService.queryVehicleInfoById(id);
+	    model.addAttribute("vehicleInfo", vehicleInfo);
+	    return model;
+    }
+    /**
+     * 查询车辆年审预警
+     * @param queryConditionData
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleMotTest" , method = RequestMethod.GET)
+    public Model queryVehicleMotTest(QueryConditionData queryConditionData){
+    	Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        Date date = new Date();
+        queryConditionData.setCurrentDate(date);
+        List<VehicleInfoView> vehicleOfNoMotTestList = 
+        		vehicleInfoService.queryVehicleMotTest(queryConditionData,page);
+        model.addAttribute("vehicleOfNoMotTestList", vehicleOfNoMotTestList);
+        model.addAttribute("total", page.getCount());
+        model.addAttribute("currentPage", page.getPage());
+        model.addAttribute("pages", page.getPages());
+        return model;
+    }
+    
+    /**
+     * 处置车辆年审预警
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/dealMotTest", method = RequestMethod.POST)
+    public Model dealMotTest(String id) {
+	    boolean result = vehicleInfoService.dealMotTest(id);
+	    return ModelMapFactory.buildModelMap("result", result);
+    }
+    
+    /**
+     * 把车辆图片转成二进制保存到数据库
+     * @throws IOException
+     * 路径:http://localhost:8888/erisp-keyvehicle/service/vehicleInfo/saveVehiclePic
+     */
+    @RequestMapping(value = "/saveVehiclePic", method = RequestMethod.POST)
+    public Model saveVehiclePic(QueryConditionData queryConditionData) throws IOException {
+    	Model model = new ExtendedModelMap();
+    	queryConditionData.setRequestType("vehZp");
+		List<VehicleInfoView> vs = vehicleInfoService.queryVehicleByConditions(queryConditionData);
+		String folderPath = queryConditionData.getUrlPath();  
+		File file = new File(folderPath); 
+		int totalCounts=0;
+		int successCounts=0;
+		int failCounts=0;
+		if (file.isDirectory()) {  
+			File[] files = file.listFiles();//获取此目录下的文件列表  
+			totalCounts=files.length;
+			if(files.length>0 && vs.size()>0){
+				for (File f : files) { 
+					String picName = "";
+					if(f.getName().indexOf("_01")==-1){
+						picName = f.getName().replace("_vehZp.jpg", "");
+					}else{
+						picName = f.getName().replace("_vehZp_01.jpg", "");
+					}
+					/*BufferedImage bi = ImageIO.read(f);   
+		            ByteArrayOutputStream baos = new ByteArrayOutputStream();   
+		            ImageIO.write(bi, "jpg", baos);   
+		            byte[] bytes = baos.toByteArray();*/
+					for (VehicleInfoView v : vs) {
+						String pv = v.getPlateNumber().replace("川", "");
+						if(pv.equals(picName)){
+							VehicleInfo vi = new VehicleInfo();
+							vi.setPlateNumber(v.getPlateNumber());
+							vi.setPlatePictureUrl(f.getName());
+							String pType = "";
+							if(f.getName().indexOf("_01")==-1){
+								pType = "02";
+							}else{
+								pType = "01";
+							}
+							vi.setPlateType(pType);
+							boolean b = vehicleInfoService.updateVehiclePic(vi);
+							if(b){
+								successCounts++;
+							}else{
+								failCounts++;
+							}
+						}
+					}
+				} 
+			}
+		}
+		String msg = "总计【"+totalCounts+"】张图片，更新成功【"+successCounts+"】张，更新失败【"+failCounts+"】张";
+		model.addAttribute("msg", msg);
+		return model;
+	}
+}

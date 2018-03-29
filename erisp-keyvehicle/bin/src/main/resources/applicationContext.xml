@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/aop 
+			http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+           	http://www.springframework.org/schema/context 
+           	http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/context 
+            http://www.springframework.org/schema/context/spring-context-3.1.xsd
+            http://www.springframework.org/schema/tx
+            http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- jdbc配置源 -->
+	<bean id="proerperties"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:systemconfig.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean
+		class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
+
+	<!-- 第一数据源 -->
+	<bean id="jdbcDataSourceMaster" name="masterDataSource"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${jdbc.driverClass}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="maxActive" value="${jdbc.maxActive}" />
+		<property name="maxIdle" value="${jdbc.maxIdle}" />
+		<property name="minIdle" value="${jdbc.minIdle}" />
+		<property name="initialSize" value="${jdbc.initialSize}" />
+		<property name="maxWait" value="${jdbc.maxWait}" />
+	</bean>
+
+	<!-- 第二数据源 -->
+	<bean id="jdbcDataSourceSlave" name="slaveDataSource"
+		class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassSlave}" />
+		<property name="url" value="${jdbc.urlSlave}" />
+		<property name="username" value="${jdbc.usernameSlave}" />
+		<property name="password" value="${jdbc.passwordSlave}" />
+		<property name="maxActive" value="${jdbc.maxActive}" />
+		<property name="maxIdle" value="${jdbc.maxIdle}" />
+		<property name="minIdle" value="${jdbc.minIdle}" />
+		<property name="initialSize" value="${jdbc.initialSize}" />
+		<property name="maxWait" value="${jdbc.maxWait}" />
+	</bean>
+
+	<bean id="dataSource" class="com.gkhb.keyvehicle.common.datasource.DynamicDataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry value-ref="jdbcDataSourceMaster" key="jdbcDataSourceMaster"></entry>
+				<entry value-ref="jdbcDataSourceSlave" key="jdbcDataSourceSlave"></entry>
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="jdbcDataSourceMaster" />
+	</bean>
+
+	<!-- mybatis文件配置，扫描所有mapper文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:applicationContext-mybatis.xml" />
+		<!-- <property name="mapperLocations" value="classpath:com/gkhb/*/mapper/*.xml" 
+			/> -->
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:com/gkhb/*/mapper/*.xml</value>
+				<value>classpath:com/gkhb/*/slave/mapper/*.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- configLocation为mybatis属性 mapperLocations为所有mapper -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.gkhb.**.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 通过aop拦截调用mapper的报名区分数据源 -->
+	<bean id="dataSourceAspect" class="com.gkhb.keyvehicle.common.datasource.DataSourceAspect" />
+	<aop:config proxy-target-class="false">
+		<aop:aspect ref="dataSourceAspect">
+			<!-- 拦截卡口数据源的mapper -->
+			<aop:pointcut id="dataSourcePointcut"
+				expression="execution(* com.gkhb.keyvehicle.slave.mapper.*.*(..))" />
+			<aop:before pointcut-ref="dataSourcePointcut" method="before" />
+			<aop:after pointcut-ref="dataSourcePointcut" method="after" />
+		</aop:aspect>
+	</aop:config>
+
+	<!-- enable transaction annotation support -->
+	<tx:annotation-driven transaction-manager="txManager" />
+
+	<context:annotation-config />
+
+	<!-- 设置使用注解的类所在的jar包 -->
+	<context:component-scan base-package="com.gkhb" />
+
+
+</beans>

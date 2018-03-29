@@ -1,0 +1,48 @@
+ /**   
+   * @Title: WarningSignServiceImpl.java
+   * @Package com.gkhb.keyvehicle.service
+   * @Description: TODO
+   * @author wusc  
+   * @date 2017年10月2日 下午4:16:00   
+   */
+package com.gkhb.keyvehicle.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.mapper.WarningSignMapper;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.SignView;
+import com.gkhb.keyvehicle.model.view.WarningSign;
+
+/**
+   * @ClassName: WarningSignServiceImpl
+   * 
+   */
+@Service
+public class WarningSignServiceImpl implements WarningSignService{
+	
+	@Autowired
+	private WarningSignMapper warningSignMpper;
+	
+	@Override
+	public List<WarningSign> queryAllWarningSign() {
+		return warningSignMpper.queryAllWarningSign();
+	}
+	
+	@Override
+	public List<WarningSign> searchWarningInfo(QueryConditionData queryConditionData, Page page) {
+		return warningSignMpper.searchWarningInfo(queryConditionData, page);
+	}
+
+	@Override
+	public int updateSignState(SignView signView) {
+		return warningSignMpper.updateSignState(signView);
+	}
+
+	
+	
+}

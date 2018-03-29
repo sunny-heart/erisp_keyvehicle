@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.slave.mapper.RecPlateInfoMapper">
+
+	<!-- 查询所有ORACLE -->
+	<!-- <select id="queryAll" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" 
+		resultType='com.gkhb.keyvehicle.model.RecPlateInfo'> select m.* from rec_plateinfo 
+		m WHERE m.FSTR_EQTID IS NOT NULL <if test=" queryConditionData.plateNumber 
+		!= null and queryConditionData.plateNumber != '' "> AND m.FSTR_VEHNO = #{queryConditionData.plateNumber} 
+		</if> <if test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious 
+		!= '' "> <![CDATA[ AND m. FDT_TIME >= to_date(#{queryConditionData.timePrevious},'yyyy-mm-dd 
+		hh24:mi:ss') ]]> </if> <if test=" queryConditionData.startTime != null and 
+		queryConditionData.startTime != '' "> <![CDATA[ AND m. FDT_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd 
+		hh24:mi:ss') ]]> </if> <if test=" queryConditionData.endTime != null and 
+		queryConditionData.endTime != '' "> <![CDATA[ AND m. FDT_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd 
+		hh24:mi:ss') ]]> </if> ORDER BY m.FDT_TIME </select> -->
+
+	<!-- 查询所有MYSQL -->
+	<select id="queryAll" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData"
+		resultType='com.gkhb.keyvehicle.model.RecPlateInfo'>
+		select m.* from rec_plateinfo m
+		WHERE m.FSTR_EQTID IS NOT NULL
+		<if
+			test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND m.FSTR_VEHNO = #{queryConditionData.plateNumber}
+		</if>
+		<if
+			test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious != '' ">
+			<![CDATA[ AND m.FDT_TIME >= DATE_FORMAT(#{queryConditionData.timePrevious},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND m. FDT_TIME >= DATE_FORMAT(#{queryConditionData.startTime},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND m. FDT_TIME <= DATE_FORMAT(#{queryConditionData.endTime},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		ORDER BY m.FDT_TIME
+	</select>
+
+</mapper>

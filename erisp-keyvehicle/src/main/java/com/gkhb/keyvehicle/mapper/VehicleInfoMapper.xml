@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 车辆信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleInfoMapper">
+
+<!-- 添加车辆信息 -->
+	<insert id="addVehicleInfo" parameterType="com.gkhb.keyvehicle.model.VehicleInfo" >
+		INSERT INTO KV_VEHICLE_INFO (
+			ID,
+			SYSTEM_NUMBER,
+			PLATE_NUMBER,
+			APPLY_COMPANY,
+			ASCRIPTION_COMPANY,
+			VEHICLE_TYPE,
+			AUTHORIZED_LOAD,
+			REGISTRATION_DATE,
+			CONTACTS,
+			PHONE_NUMBER,
+			PLATE_PICTURE_URL,
+			MOT_TEST_DATE
+		)
+		VALUES (
+			#{id,jdbcType=VARCHAR},
+			#{systemNumber,jdbcType=VARCHAR},
+			#{plateNumber,jdbcType=VARCHAR},
+			#{applyCompany,jdbcType=VARCHAR},
+			#{ascriptionCompany,jdbcType=VARCHAR},
+			#{vehicleType,jdbcType=VARCHAR},
+			#{authorizedLoad,jdbcType=INTEGER},
+			#{registrationDate},
+			#{contacts,jdbcType=VARCHAR},
+			#{phoneNumber,jdbcType=VARCHAR},
+			#{platePictureUrl,jdbcType=VARCHAR},
+			#{motTestDate,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- 删除车辆信息 -->
+	<delete id="deleteVehicleInfoById">
+		DELETE FROM KV_VEHICLE_INFO  WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	
+	<!-- 修改车辆信息 -->
+	<update id="updateVehicleInfo" parameterType="com.gkhb.keyvehicle.model.VehicleInfo">
+		UPDATE KV_VEHICLE_INFO SET 
+			 SYSTEM_NUMBER = #{systemNumber},
+			 PLATE_NUMBER = #{plateNumber},
+			 APPLY_COMPANY = #{applyCompany},
+			 ASCRIPTION_COMPANY = #{ascriptionCompany},
+			 VEHICLE_TYPE = #{vehicleType},
+			 AUTHORIZED_LOAD = #{authorizedLoad},
+			 REGISTRATION_DATE = #{registrationDate},
+			 CONTACTS = #{contacts},		 
+			 PHONE_NUMBER = #{phoneNumber},
+			 PLATE_PICTURE_URL = #{platePictureUrl},
+			 MOT_TEST_DATE = #{motTestDate}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 修改车辆图片  -->
+	<update id="updateVehiclePic" parameterType="com.gkhb.keyvehicle.model.VehicleInfo">
+		UPDATE KV_VEHICLE_INFO V SET 
+			 V.PLATE_PICTURE_URL = #{platePictureUrl}
+		WHERE V.PLATE_NUMBER = #{plateNumber,jdbcType=VARCHAR}
+		<if test=" plateType != null and plateType != '' and plateType=='01' ">
+            AND (V.PLATE_Type='01' OR V.PLATE_Type IS NULL OR V.PLATE_Type='')
+        </if>
+        <if test=" plateType != null and plateType != '' and plateType=='02' ">
+            AND V.PLATE_Type='02'
+        </if>
+	</update>
+	
+	<!-- 查询车辆信息 -->
+	<select id="queryVehicleInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT V.*,case when k.gps_state is null then 0
+         else k.gps_state end as gps_state,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state
+		FROM KV_VEHICLE_INFO V 
+		left join kv_ds_real_time_gps_data k on k.plate_number=V.plate_number 
+		WHERE V.STATE = 0
+        <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+            AND V.PLATE_NUMBER LIKE CONCAT(CONCAT(CONCAT(CONCAT('%', #{queryConditionData.plateNumberHead}),'%'),#{queryConditionData.plateNumberBody}),'%')
+        </if>
+        <if test=" queryConditionData.departmentName != null and queryConditionData.departmentName != '' 
+        and queryConditionData.departmentName != '交通管理局' and queryConditionData.departmentName != '成都市公安局'">
+            AND V.VEHICLE_DEPT LIKE CONCAT(CONCAT('%', #{queryConditionData.departmentName}),'%')
+        </if>
+		ORDER BY gps_state DESC
+	</select>
+	
+	<!-- 查询已经预警的车辆信息 -->
+	<select id="queryWarningVehicleInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT V.*,case when k.gps_state is null then 0
+         else k.gps_state end as gps_state,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state
+		FROM KV_VEHICLE_INFO V
+		left join kv_ds_real_time_gps_data k on k.plate_number=V.plate_number 
+		WHERE V.STATE = 0
+        <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+            AND V.PLATE_NUMBER LIKE CONCAT(CONCAT(CONCAT(CONCAT('%', #{queryConditionData.plateNumberHead}),'%'),#{queryConditionData.plateNumberBody}),'%')
+        </if>
+        <if test=" queryConditionData.departmentName != null and queryConditionData.departmentName != '' 
+        and queryConditionData.departmentName != '交通管理局' and queryConditionData.departmentName != '成都市公安局'">
+            AND V.VEHICLE_DEPT LIKE CONCAT(CONCAT('%', #{queryConditionData.departmentName}),'%')
+        </if>
+        and V.plate_number in (select w.plate_number from kv_ds_warning_info w where w.disposal_way &lt; 3)
+		ORDER BY gps_state DESC
+	</select>
+	
+	<!-- INNER JOIN (SELECT PLATE_NUMBER FROM KV_DS_WARNING_INFO GROUP BY PLATE_NUMBER HAVING MAX(DISPOSAL_WAY)&lt;3) WARNING
+		ON WARNING.PLATE_NUMBER = V.PLATE_NUMBER -->
+	
+	<!-- 查询车辆信息 -->
+	<select id="queryVehicle" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT * FROM KV_VEHICLE_INFO
+		ORDER BY REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 按条件查询车辆信息 -->
+	<select id="queryVehicleByConditions" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT V.* FROM KV_VEHICLE_INFO V
+		<where>
+			<if test=" queryConditionData.requestType != null and queryConditionData.requestType != '' ">
+				AND V.PLATE_PICTURE_URL NOT LIKE CONCAT(CONCAT('%', #{queryConditionData.requestType}),'%')
+				OR V.PLATE_PICTURE_URL IS NULL
+			</if>
+		</where>
+		ORDER BY V.REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="queryVehicleInfoById" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.VehicleInfo'>
+		SELECT * FROM KV_VEHICLE_INFO WHERE ID = #{id,jdbcType=VARCHAR} ORDER BY REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 预警信息的展示 -->
+		<!-- SELECT V.*,E.WARNING_TYPE FROM KV_VEHICLE_INFO V,KV_DISPOSAL_PROCESS D,KV_EARLY_WARNING_INFO E
+		WHERE D.STATE = 0 AND D.WARNING_ID = E.ID AND E.VEHICLE_ID = V.ID -->
+	<!-- 根据车牌查询(高级搜索) -->
+	<select id="searchVehicleInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		<!-- SELECT V.* FROM KV_VEHICLE_INFO V -->
+		SELECT V.*,
+		kvos.vehicle_state vehicle_online_state,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state
+		FROM KV_VEHICLE_INFO V 
+		left join kv_vehicle_online_state kvos on kvos.vehicle_id=v.id
+		WHERE V.STATE = 0 
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test=" queryConditionData.plateType != null and queryConditionData.plateType != '' ">
+			AND V.PLATE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.plateType}),'%')
+		</if>
+		<if test=" queryConditionData.vehicleState != null and queryConditionData.vehicleState != '' ">
+			AND V.VEHICLE_STATE LIKE CONCAT(CONCAT('%', #{queryConditionData.vehicleState}),'%')
+		</if>
+		<if test=" queryConditionData.competentAuthority != null and queryConditionData.competentAuthority != '' ">
+			AND V.COMPETENT_AUTHORITY LIKE CONCAT(CONCAT('%', #{queryConditionData.competentAuthority}),'%')
+		</if>
+		<if test=" queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany != '' ">
+			AND V.ASCRIPTION_COMPANY LIKE CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+		</if>
+		<!-- <if test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType != '' ">
+			AND V.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.vehicleType}),'%')
+		</if> -->
+		<if test=" queryConditionData.onLineState != null and queryConditionData.onLineState != '' and queryConditionData.onLineState == 'online'">
+			AND exists(select kv.vehicle_id from kv_vehicle_online_state kv where v.id=kv.vehicle_id and kv.vehicle_state=1)
+		</if>
+		<if test=" queryConditionData.onLineState != null and queryConditionData.onLineState != '' and queryConditionData.onLineState == 'offline'">
+			AND not exists(select kv.vehicle_id from kv_vehicle_online_state kv where v.id=kv.vehicle_id and kv.vehicle_state=1)
+		</if>
+		ORDER BY V.REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 根据车牌查询某一车辆并返回view -->
+	<select id="searchVehicleInfoByPlateNumber" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT V.*,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state 
+		FROM KV_VEHICLE_INFO V
+		WHERE V.STATE = 0
+		<if test="plateNumber != null and plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{plateNumber}),'%')
+		</if>
+		ORDER BY V.REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 根据车辆类型查询 -->
+	<select id="searchVehicleInfoByVehicleType" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		SELECT V.*,R.LONGITUDE,R.LATITUDE,R.WARN_FLAG ,R.REPORT_TIME,R.SPEED,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state 
+		FROM KV_VEHICLE_INFO V,KV_REAL_TIME_DATA R,(SELECT MAX(REPORT_TIME) AS REPORT_TIME,PLATE_NUMBER FROM KV_REAL_TIME_DATA GROUP BY PLATE_NUMBER) B
+		WHERE R.REPORT_TIME=B.REPORT_TIME AND R.PLATE_NUMBER=B.PLATE_NUMBER
+		AND V.PLATE_NUMBER = R.PLATE_NUMBER
+		<if test=" vehicleType != null and vehicleType != '' ">
+			AND V.VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{vehicleType}),'%')
+		</if>
+	</select>
+	
+	<!-- 根据车牌号码查询并返回实体类 -->
+	<select id="queryVehicleInfoByPlateNumber" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.VehicleInfo'>
+		SELECT * FROM KV_VEHICLE_INFO
+		WHERE STATE = 0
+		<if test="queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test="queryConditionData.plate != null and queryConditionData.plate != '' ">
+			AND PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plate}),'%')
+		</if>
+		<if test="queryConditionData.vehicleType != null and queryConditionData.vehicleType != '' ">
+			AND VEHICLE_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.vehicleType}),'%')
+		</if>
+		ORDER BY REGISTRATION_DATE DESC
+	</select>
+	
+	<!-- 查询未年审车辆数据 -->
+	<select id="queryVehicleMotTest" resultType='com.gkhb.keyvehicle.model.view.VehicleInfoView'>
+		select v.id,v.plate_number,v.vehicle_type,v.registration_date,
+		v.ascription_company,v.competent_authority,v.vehicle_frame_number,v.plate_type,
+		v.mot_test_date,v.mot_test_deal_state,v.plate_picture_url,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss')
+        then '未年审' else '正常' end) as mot_test_state
+        from kv_vehicle_info v
+        where v.mot_test_deal_state=0 and (v.mot_test_date is null or (to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(v.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(v.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss')))
+        order by v.id desc
+	</select>
+	
+	<!-- 处置车辆年审预警 -->
+	<update id="dealMotTest">
+		UPDATE KV_VEHICLE_INFO SET 
+			 MOT_TEST_DEAL_STATE = 1
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</update>
+	
+	<!-- 根据车牌号查当前年度事故次数 -->
+	<select id="countAccidentTotalByPlateNumber" parameterType="java.lang.String" resultType='java.lang.Integer'>
+		select count(kai.plate_number) accident_total from kv_accident_info kai group by kai.plate_number,to_char(kai.accident_time,'yyyy')
+		having kai.plate_number = #{plateNumber} and to_char(kai.accident_time,'yyyy')=to_char(sysdate,'yyyy')
+	</select>
+	
+	<!-- 根据车牌号查当前年度违法次数 -->
+	<select id="countIllegalTotalByPlateNumber" parameterType="java.lang.String" resultType='java.lang.Integer'>
+		select count(kii.plate_number) illegal_total from kv_illegal_info kii group by kii.plate_number,to_char(kii.illegal_time,'yyyy')
+		having kii.plate_number = #{plateNumber} and to_char(kii.illegal_time,'yyyy')=to_char(sysdate,'yyyy')
+	</select>
+</mapper>

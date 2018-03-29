@@ -1,0 +1,123 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown"
+	style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="reportsBySubofficesController">
+	<div class="title_text">按分局统计预警数量</div>
+	<div class="title_line"></div>
+		<fieldset>
+			<div class="row-fluid">
+				<div class="col-md-4" style="padding-left:0px;width:90%;">
+					<label class="font_black_famil">时间类型 ：</label>
+					<select class="js-data-example-ajax font_black_famil" id="countTimeType" style="width:80px;" ng-change="countTimeTypeChange()" ng-model="queryConditionData.countTimeType">
+						<option value="月份" selected="selected">月份</option>
+						<option value="季度">季度</option>
+						<option value="年份">年份</option>
+					</select>
+					<label style="margin-left:10px;">时间：</label>
+					<select ng-model="queryConditionData.startYear" ng-options="year for year in optionsOfYear" class="js-data-example-ajax font_black_famil" id="startYear" style="width:80px;">
+					</select>
+					年
+					<select ng-if="queryConditionData.countTimeType=='季度'" ng-model="queryConditionData.startQuarter" class="js-data-example-ajax font_black_famil" id="startQuarter" style="width:80px;">
+						<option value="1" selected="selected">全部季度</option>
+						<option value="1">第1季度</option>
+						<option value="2">第2季度</option>
+						<option value="3">第3季度</option>
+						<option value="4">第4季度</option>
+					</select>
+					<select ng-if="queryConditionData.countTimeType=='月份'" ng-model="queryConditionData.startMonth" class="js-data-example-ajax font_black_famil" id="startMonth" style="width:80px;">
+						<option value="01" selected="selected"></option>
+						<option value="01">1</option>
+						<option value="02">2</option>
+						<option value="03">3</option>
+						<option value="04">4</option>
+						<option value="05">5</option>
+						<option value="06">6</option>
+						<option value="07">7</option>
+						<option value="08">8</option>
+						<option value="09">9</option>
+						<option value="10">10</option>
+						<option value="11">11</option>
+						<option value="12">12</option>
+					</select>
+					<font ng-if="queryConditionData.countTimeType=='月份'">月</font>
+					&nbsp;--&nbsp;
+					<select ng-model="queryConditionData.endYear" ng-options="year for year in optionsOfYear" class="js-data-example-ajax font_black_famil" id="endYear" style="width:80px;">
+					</select>
+					年
+					<select ng-if="queryConditionData.countTimeType=='季度'" ng-model="queryConditionData.endQuarter" class="js-data-example-ajax font_black_famil" id="endQuarter" style="width:80px;">
+						<option value="4" selected="selected">全部季度</option>
+						<option value="1">第1季度</option>
+						<option value="2">第2季度</option>
+						<option value="3">第3季度</option>
+						<option value="4">第4季度</option>
+					</select>
+					<select ng-if="queryConditionData.countTimeType=='月份'" ng-model="queryConditionData.endMonth" class="js-data-example-ajax font_black_famil" id="endMonth" style="width:80px;">
+						<option value="12" selected="selected"></option>
+						<option value="01">1</option>
+						<option value="02">2</option>
+						<option value="03">3</option>
+						<option value="04">4</option>
+						<option value="05">5</option>
+						<option value="06">6</option>
+						<option value="07">7</option>
+						<option value="08">8</option>
+						<option value="09">9</option>
+						<option value="10">10</option>
+						<option value="11">11</option>
+						<option value="12">12</option>
+					</select>
+					<font ng-if="queryConditionData.countTimeType=='月份'">月</font>
+					<label style="margin-left:10px;">分局名称：</label>
+					<select class="js-data-example-ajax font_black_famil" id="subofficeName" style="width:80px;" ng-model="queryConditionData.subofficeName">
+						<option value="" selected="selected">全部</option>
+						<option value="一分局">一分局</option>
+						<option value="二分局">二分局</option>
+						<option value="三分局">三分局</option>
+						<option value="四分局">四分局</option>
+						<option value="五分局">五分局</option>
+						<option value="六分局">六分局</option>
+						<option value="其他">其他</option>
+					</select>
+					<button type="button" ng-click="countWarningBySuboffices()" class="btn pams_query" style="margin-left:15px;">
+						<span>查询 <i class="fa fa-search"></i></span>
+					</button>
+					<button type="button" ng-click="reset()" class="btn pams_reset" style="margin-left: 15px;">
+						<span>重置<!-- <i class="fa fa-repeat"></i> --></span>
+					</button>
+				</div>
+				<div class="col-md-4" style="padding-left:0px;width:10%;">
+					<label class="font_black_famil">排序 ：</label>
+					<select class="js-data-example-ajax font_black_famil" id="sortType" style="width:80px;" ng-change="countWarningBySuboffices()" ng-model="queryConditionData.sortType">
+						<option value="统计时间" selected="selected">统计时间</option>
+						<option value="预警数量">预警数量</option>
+					</select>
+				</div>
+				<!-- <div class="col-sm-4">
+					<button type="button" ng-click="countWarningBySuboffices()" class="btn pams_query">
+						<span>查询 <i class="fa fa-search"></i></span>
+					</button>
+					<button type="button" ng-click="reset()" class="btn pams_reset" style="margin-left: 15px;">
+						<span>重置<i class="fa fa-repeat"></i></span>
+					</button>
+				</div> -->
+			</div>
+		</fieldset>
+		<div class="row-fluid" style="width:100%;">
+		<div class="table-responsive" style="height:650px;">
+			<table id="countsTable" cellspacing="0" width="100%" class="table text-nowrap table-hover table-bordered pams_table">
+				<thead>
+					<tr>
+						<th class="center table-th">分局名称</th>
+						<th class="center table-th">统计时间</th>
+						<th class="center table-th">预警数量</th>
+						<th class="center table-th">预警车辆数</th>
+						<th class="center table-th">车辆总数</th>
+			            <th class="center table-th">预警车辆比率</th>
+					</tr>
+				</thead>
+				<tbody style="text-align:center;">
+				</tbody>
+			</table>
+			</div>
+		</div>
+	</div>
+</div>

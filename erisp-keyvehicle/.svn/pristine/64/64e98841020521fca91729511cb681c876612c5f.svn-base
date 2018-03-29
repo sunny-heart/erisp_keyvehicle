@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 报表统计Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.ReportsMapper">
+
+	<!-- 根据车辆类型统计 -->
+	<select id="countByTypes" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		<!-- select (case when v.vehicle_type is null then '其他车' else v.vehicle_type end) vehicle_type,to_char(k.warning_start_time,'mm') as count_time, count(1) as warning_counts from kv_early_warning_info k 
+		 left join kv_vehicle_info v on v.id=k.vehicle_id where 1=1
+		 <if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+		 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+		 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+		 </if>
+		 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 </if>
+		 group by to_char(k.warning_start_time,'mm'),v.vehicle_type
+		 order by to_char(k.warning_start_time,'mm') asc -->
+		 select 
+		 to_char(k.warning_start_time,'mm') as count_time,
+		 nvl(v.vehicle_type, '其他车') as vehicle_type,
+		 k.warning_type,
+		 count(1) as warning_counts 
+		 from kv_ds_warning_info k 
+	     left join kv_vehicle_info v on v.plate_number=k.plate_number
+ 		 <where>
+ 		 	<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+			 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+			 </if>
+			 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 	</if> 
+		 	<if test=" queryConditionData.subofficeName != null and queryConditionData.subofficeName !='' ">
+ 				and v.VEHICLE_DEPT like CONCAT(CONCAT('%', #{queryConditionData.subofficeName}),'%')
+ 			</if>
+ 		 </where>
+ 		 group by to_char(k.warning_start_time,'mm'),k.warning_type,v.vehicle_type 
+		 order by to_char(k.warning_start_time,'mm') asc
+	</select>
+	
+	<!-- 根据主管部门统计 -->
+	<select id="countByDepartments" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		<!-- select (case when v.competent_authority is null then '其他部门' else v.competent_authority end) competent_authority,to_char(k.warning_start_time,'mm') as count_time, count(1) as warning_counts from kv_early_warning_info k 
+		 left join kv_vehicle_info v on v.id=k.vehicle_id where 1=1 
+		 <if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+		 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+		 </if>
+		 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+		 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 </if> 
+		 group by to_char(k.warning_start_time,'mm'),v.competent_authority
+		 order by to_char(k.warning_start_time,'mm') asc -->
+		 select 
+	     to_char(k.warning_start_time,'mm') as count_time,
+	     nvl(v.competent_authority, '其他部门') as competent_authority,
+	     k.warning_type,
+	     count(1) as warning_counts 
+	     from kv_ds_warning_info k 
+	     left join kv_vehicle_info v on v.plate_number=k.plate_number
+	     <where>
+ 		 	<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&gt;=#{queryConditionData.startTime} 
+			 and to_char(k.warning_start_time,'yyyy')=#{queryConditionData.currentYear} 
+			 </if>
+			 <if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			 and to_char(k.warning_start_time,'mm')&lt;=#{queryConditionData.endTime} 
+		 	</if> 
+		 	<if test=" queryConditionData.subofficeName != null and queryConditionData.subofficeName !='' ">
+ 				and v.VEHICLE_DEPT like CONCAT(CONCAT('%', #{queryConditionData.subofficeName}),'%')
+ 			</if>
+ 		 </where>
+	     group by to_char(k.warning_start_time,'mm'),k.warning_type,v.competent_authority 
+		 order by to_char(k.warning_start_time,'mm') asc
+	</select>
+	
+	<!-- 根据分局统计预警数量 -->
+	<select id="countAllWarningBySuboffices" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		select a.depNo||'-'||a.suboffice_name||'-'||c.vehicle_totals suboffice_name,a.count_time,a.warning_counts,
+			   b.vehicle_warning_counts from 
+			(select nvl(v.VEHICLE_DEPT, '其他') as suboffice_name,
+			       <include refid="countTimeType"></include> as count_time,
+			       count(1) as warning_counts,
+			       (case 
+			           when v.VEHICLE_DEPT='一分局' then 1
+			           when v.VEHICLE_DEPT='二分局' then 2
+			           when v.VEHICLE_DEPT='三分局' then 3
+			           when v.VEHICLE_DEPT='四分局' then 4
+			           when v.VEHICLE_DEPT='五分局' then 5
+			           when v.VEHICLE_DEPT='六分局' then 6
+			           else 7
+			       end) as depNo
+			 from kv_ds_warning_info k
+			 left join kv_vehicle_info v on v.plate_number = k.plate_number
+			 <where>
+				<include refid="time_filter"></include>
+				<if test=" queryConditionData.subofficeName != null and queryConditionData.subofficeName !='' ">
+	 				and v.VEHICLE_DEPT like CONCAT(CONCAT('%', #{queryConditionData.subofficeName}),'%')
+	 			</if>
+			</where>
+			 group by <include refid="countTimeType"></include>,v.VEHICLE_DEPT) a
+			 left join 
+			 (select nvl(v.VEHICLE_DEPT, '其他') as suboffice_name,
+			        <include refid="countTimeType"></include> as count_time,
+			        count(1) as vehicle_warning_counts
+			 from (select * from kv_ds_warning_info w where ID=(select min(ID) from kv_ds_warning_info where plate_number=w.plate_number and <include refid="countTimeType2"></include>=<include refid="countTimeType3"></include>)) k
+			 left join kv_vehicle_info v on v.plate_number = k.plate_number
+			 <where>
+				<include refid="time_filter"></include>
+				<if test=" queryConditionData.subofficeName != null and queryConditionData.subofficeName !='' ">
+	 				and v.VEHICLE_DEPT like CONCAT(CONCAT('%', #{queryConditionData.subofficeName}),'%')
+	 			</if>
+			 </where>
+			 group by <include refid="countTimeType"></include>,v.VEHICLE_DEPT) b
+			 on (a.suboffice_name = b.suboffice_name and a.count_time = b.count_time)
+			 left join 
+			 (
+			 select nvl(k.VEHICLE_DEPT, '其他') as suboffice_name,count(1) vehicle_totals from kv_vehicle_info k group by k.vehicle_dept
+			 ) c
+			 on c.suboffice_name = a.suboffice_name
+			 <choose>
+				 <when test=" queryConditionData.sortType == '预警数量' ">
+				 	order by a.warning_counts desc
+	 			 </when>
+	 			 <otherwise>
+	 			 	order by a.count_time asc
+	 			 </otherwise>
+			 </choose>
+	</select>
+	
+	<!-- 根据公司统计预警数量 -->
+	<select id="countAllWarningByCompany" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.ReportsView'>
+		select a.company_name||'-'||c.vehicle_totals company_name,a.count_time,a.warning_counts,
+			   b.vehicle_warning_counts from 
+			(select nvl(v.ascription_company, '其他公司') as company_name,
+			       <include refid="countTimeType"></include> as count_time,
+			       count(1) as warning_counts
+			 from kv_ds_warning_info k
+			 left join kv_vehicle_info v on v.plate_number = k.plate_number
+			 <where>
+				<include refid="time_filter"></include>
+				<if test=" queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany !='' ">
+	 				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+	 			</if>
+			</where>
+			 group by <include refid="countTimeType"></include>,v.ascription_company) a
+			 left join 
+			 (select nvl(v.ascription_company, '其他') as company_name,
+			        <include refid="countTimeType"></include> as count_time,
+			        count(1) as vehicle_warning_counts
+			 from (select * from kv_ds_warning_info w where ID=(select min(ID) from kv_ds_warning_info where plate_number=w.plate_number and <include refid="countTimeType2"></include>=<include refid="countTimeType3"></include>)) k
+			 left join kv_vehicle_info v on v.plate_number = k.plate_number
+			 <where>
+				<include refid="time_filter"></include>
+				<if test=" queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany !='' ">
+	 				and v.ascription_company like CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+	 			</if>
+			 </where>
+			 group by <include refid="countTimeType"></include>,v.ascription_company) b
+			 on (a.company_name = b.company_name and a.count_time = b.count_time)
+			 left join 
+			 (
+			 select nvl(k.ascription_company, '其他公司') as company_name,count(1) vehicle_totals from kv_vehicle_info k group by k.ascription_company
+			 ) c
+			 on c.company_name = a.company_name
+			 <choose>
+				 <when test=" queryConditionData.sortType == '预警数量' ">
+				 	order by a.warning_counts desc
+	 			 </when>
+	 			 <otherwise>
+	 			 	order by a.count_time asc
+	 			 </otherwise>
+			 </choose>
+	</select>
+	
+	<!-- 按时间筛选 -->
+	<sql id="time_filter">
+		<if test=" queryConditionData.startYear != null and queryConditionData.startYear !='' ">
+			and <include refid="countTimeType"></include>&gt;=#{queryConditionData.startYear}
+			<if test=" queryConditionData.startMonth !=null and queryConditionData.startMonth !='' ">
+				||'-'||#{queryConditionData.startMonth}
+			</if>
+			<if test=" queryConditionData.startQuarter !=null and queryConditionData.startQuarter !='' ">
+				||'-'||#{queryConditionData.startQuarter}
+			</if>
+		</if>
+		<if test=" queryConditionData.endYear != null and queryConditionData.endYear !='' ">
+			and <include refid="countTimeType"></include>&lt;=#{queryConditionData.endYear}
+			<if test=" queryConditionData.endMonth !=null and queryConditionData.endMonth !='' ">
+				||'-'||#{queryConditionData.endMonth}
+			</if>
+			<if test=" queryConditionData.endQuarter !=null and queryConditionData.endQuarter !='' ">
+				||'-'||#{queryConditionData.endQuarter}
+			</if>
+		</if>
+	</sql>
+	
+	<!-- 时间类型字段 -->
+	<sql id="countTimeType">
+		<if test=" queryConditionData.countTimeType != null and queryConditionData.countTimeType !='' ">
+         	<if test=" queryConditionData.countTimeType == '月份' ">
+         		to_char(k.warning_start_time, 'yyyy-mm')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '季度' ">
+         		to_char(k.warning_start_time, 'yyyy')||'-'||to_char(k.warning_start_time, 'q')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '年份' ">
+         		to_char(k.warning_start_time, 'yyyy')
+         	</if>
+         </if>
+	</sql>
+	
+	<!-- 时间类型字段2 -->
+	<sql id="countTimeType2">
+		<if test=" queryConditionData.countTimeType != null and queryConditionData.countTimeType !='' ">
+         	<if test=" queryConditionData.countTimeType == '月份' ">
+         		to_char(warning_start_time, 'yyyy-mm')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '季度' ">
+         		to_char(warning_start_time, 'yyyy')||'-'||to_char(warning_start_time, 'q')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '年份' ">
+         		to_char(warning_start_time, 'yyyy')
+         	</if>
+         </if>
+	</sql>
+	
+	<!-- 时间类型字段3 -->
+	<sql id="countTimeType3">
+		<if test=" queryConditionData.countTimeType != null and queryConditionData.countTimeType !='' ">
+         	<if test=" queryConditionData.countTimeType == '月份' ">
+         		to_char(w.warning_start_time, 'yyyy-mm')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '季度' ">
+         		to_char(w.warning_start_time, 'yyyy')||'-'||to_char(w.warning_start_time, 'q')
+         	</if>
+         	<if test=" queryConditionData.countTimeType == '年份' ">
+         		to_char(w.warning_start_time, 'yyyy')
+         	</if>
+         </if>
+	</sql>
+	
+</mapper>

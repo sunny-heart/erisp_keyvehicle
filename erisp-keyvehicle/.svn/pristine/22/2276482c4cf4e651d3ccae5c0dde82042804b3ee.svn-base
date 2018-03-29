@@ -1,0 +1,43 @@
+package com.gkhb.keyvehicle.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.gkhb.keyvehicle.mapper.VehicleRealTimeInfoMapper;
+import com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView;
+
+/**
+ *
+ *	@author Colin
+ *	@createTime 2017年7月4日 上午9:46:39
+ */
+@Service
+public class VehicleRealTimeInfoServiceImpl implements VehicleRealTimeInfoService{
+
+	@Autowired
+	private VehicleRealTimeInfoMapper vehicleRealTimeInfoMapper;
+	
+	@Override
+	public List<VehicleRealTimeInfoView> queryVehicleRealTimeInfo() {
+		return vehicleRealTimeInfoMapper.queryVehicleRealTimeInfo();
+	}
+
+	@Override
+	public VehicleRealTimeInfoView queryOneVehicleRealTimeInfo(String plateNumber){
+		return vehicleRealTimeInfoMapper.queryOneVehicleRealTimeInfo(plateNumber);
+	}
+	
+	@Override
+	public double queryVehicleRealTimeInfoSpeed() {
+		// TODO Auto-generated method stub
+		double realTimeSpeed=vehicleRealTimeInfoMapper.queryVehicleRealTimeInfoSpeed();
+		return realTimeSpeed;
+	}
+
+	@Override
+	public VehicleRealTimeInfoView queryVehicleDriveInfo(String plateNumber) {
+		return vehicleRealTimeInfoMapper.queryVehicleDriveInfo(plateNumber);
+	}
+}

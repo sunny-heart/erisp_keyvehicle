@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleOnlineStateMapper">
+	<!-- 根据实时表和历史表的数据生成车辆在线状态 -->
+	<insert id="addVehicleOnlineState">
+		insert into kv_vehicle_online_state(VEHICLE_ID)
+		select kvi.id from (select krtd.plate_number,count(*) from
+		kv_real_time_data krtd where krtd.report_time>(sysdate-1/24) group by
+		krtd.plate_number
+		having count(*)>=1 order by krtd.plate_number) k
+		inner join kv_vehicle_info kvi on kvi.plate_number=k.plate_number
+		union
+		select kvi2.id from (select khd.plate_number,count(*) from kv_hist_data khd
+		where khd.report_time>(sysdate-1/24) group by khd.plate_number
+		having count(*)>=1 order by khd.plate_number) k2
+		inner join kv_vehicle_info kvi2 on kvi2.plate_number=k2.plate_number
+	</insert>
+
+	<!-- 一次清除所有的状态记录 -->
+	<delete id="deleteVehicleOnlineState">
+		TRUNCATE TABLE KV_VEHICLE_ONLINE_STATE
+	</delete>
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 事故信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.AccidentInfoMapper">
+	
+	<!-- 查询事故信息 -->
+	<select id="queryAccident" resultType='com.gkhb.keyvehicle.model.AccidentInfo'>
+		SELECT * FROM KV_ACCIDENT_INFO
+		ORDER BY ACCIDENT_TIME DESC
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="queryAccidentInfoById" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.AccidentInfo'>
+		SELECT * FROM KV_ACCIDENT_INFO WHERE ID = #{id,jdbcType=VARCHAR} ORDER BY ACCIDENT_TIME DESC
+	</select>
+	
+	<!-- 高级搜索 -->
+	<select id="searchAccidentInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.AccidentInfo'>
+		SELECT V.* FROM KV_ACCIDENT_INFO V
+		WHERE V.STATE = 0 
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND V. ACCIDENT_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND V. ACCIDENT_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.accidentType != null and queryConditionData.accidentType != '' ">
+			AND V.ACCIDENT_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.accidentType}),'%')
+		</if>
+		ORDER BY V.ACCIDENT_TIME DESC
+	</select>
+</mapper>

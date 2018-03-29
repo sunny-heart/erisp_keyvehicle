@@ -1,0 +1,9 @@
+package com.gkhb.keyvehicle.service;
+
+
+import com.gkhb.keyvehicle.model.RealTimeData;
+import com.gkhb.keyvehicle.model.TravelTime;
+
+public interface WarnRuleService {
+	public TravelTime TimeRuleWarn(RealTimeData data);
+}

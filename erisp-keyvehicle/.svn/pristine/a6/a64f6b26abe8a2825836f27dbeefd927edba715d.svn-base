@@ -1,0 +1,67 @@
+package com.gkhb.keyvehicle.model.view;
+
+
+/*
+ * 预警信息返回类
+ * 
+ */
+public class EarlyWarningInfoView {
+
+	/**
+	 * 车辆总数
+	 */
+    private long vehicleTotal;
+    /**
+     * 当前在线车辆
+     */
+    private long currentOnlineTotal;
+    /**
+     * 在线率
+     */
+    private double currentOnlineRate;
+    /**
+     * 预警总数
+     */
+    private long warningTotal;
+    /**
+     * 今日预警数
+     */
+    private long todayWarningTotal;
+    /**
+     * 今日预警率
+     */
+    private double todayWarningRate;
+    
+	public long getVehicleTotal() {
+		return vehicleTotal;
+	}
+	
+	public long getWarningTotal() {
+		return warningTotal;
+	}
+	
+	public long getTodayWarningTotal() {
+		return todayWarningTotal;
+	}
+	
+	public double getTodayWarningRate() {
+		return todayWarningRate;
+	}
+
+	public long getCurrentOnlineTotal() {
+		return currentOnlineTotal;
+	}
+
+	public double getCurrentOnlineRate() {
+		return currentOnlineRate;
+	}
+
+	public void setCurrentOnlineRate(double currentOnlineRate) {
+		this.currentOnlineRate = currentOnlineRate;
+	}
+
+	public void setTodayWarningRate(double todayWarningRate) {
+		this.todayWarningRate = todayWarningRate;
+	}
+
+}

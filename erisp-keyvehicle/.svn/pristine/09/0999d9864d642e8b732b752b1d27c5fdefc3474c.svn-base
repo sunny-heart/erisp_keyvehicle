@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.ConfInfoMapper">
+	<insert id="addConfInfo" parameterType="com.gkhb.keyvehicle.model.ConfInfo">
+		INSERT INTO
+		kv_conf_info(
+		ID,
+		CODE_TYPE_KEY,
+		KEY,
+		NAME,
+		FULL_NAME,
+		STATE
+		)
+		VALUES
+		(
+		#{id,jdbcType=VARCHAR},
+		#{codeTypeKey, jdbcType=VARCHAR},
+		#{key,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{fullName,jdbcType=VARCHAR},
+		#{state,jdbcType=INTEGER}
+		)
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryConfInfo" resultType='com.gkhb.keyvehicle.model.ConfInfo'>
+		select * from
+		kv_conf_info
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateConfInfo" parameterType="com.gkhb.keyvehicle.model.ConfInfo">
+		UPDATE
+		kv_conf_info SET
+		CODE_TYPE_KEY= #{codeTypeKey},
+		KEY= #{key},
+		NAME= #{name},
+		FULL_NAME= #{fullName},
+		STATE= #{state}
+		WHERE ID = #{id}
+	</update>
+
+
+</mapper>

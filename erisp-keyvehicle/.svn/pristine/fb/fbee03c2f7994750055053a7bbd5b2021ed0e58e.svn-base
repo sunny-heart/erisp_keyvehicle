@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 报警规则Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.WarnRuleMapper">
+
+<!-- 查询车辆当前活动时间是否在时间规则表里面 -->
+	<select id="queryTravelTimeByvehicleIdAndTime" resultType='com.gkhb.keyvehicle.model.TravelTime'>
+		SELECT * FROM kv_travel_time  
+		WHERE VEHICLE_ID=#{ID,jdbcType=VARCHAR} 
+		AND #{reportTimeOfDate,jdbcType=DATE}<![CDATA[>=]]>DRIVE_START_DATE 
+		AND #{reportTimeOfDate,jdbcType=DATE}<![CDATA[<=]]>DRIVE_END_DATE
+		AND #{reportTimeOfTime,jdbcType=TIME}<![CDATA[>=]]>DRIVE_START_TIME
+		AND #{reportTimeOfTime,jdbcType=TIME}<![CDATA[<=]]>DRIVE_END_TIME
+		and state=1;
+	</select>
+
+	<insert id="add" parameterType="com.gkhb.keyvehicle.model.WarningRule">
+		INSERT INTO KV_DS_WRINING_RULE (ID, NAME, VEHICLE_TYPE, VEHICLE_PLATE_TYPE, RULE_TYPE, RULE, CREATE_TIME, UPDATE_TIME)
+		VALUES (
+			#{id,jdbcType=VARCHAR},
+			#{name,jdbcType=VARCHAR},
+			#{vehicleType,jdbcType=VARCHAR},
+			#{vehiclePlateType,jdbcType=VARCHAR},
+			#{ruleType.name,jdbcType=VARCHAR},
+			#{rule,jdbcType=VARCHAR},
+			#{createTime,jdbcType=DATE},
+			#{updateTime,jdbcType=DATE})
+	</insert>
+
+	<insert id="update" parameterType="com.gkhb.keyvehicle.model.WarningRule">
+		UPDATE KV_DS_WRINING_RULE SET
+			NAME = #{name,jdbcType=VARCHAR},
+			VEHICLE_TYPE = #{vehicleType,jdbcType=VARCHAR},
+			VEHICLE_PLATE_TYPE = #{vehiclePlateType,jdbcType=VARCHAR},
+			RULE_TYPE = #{ruleType.name,jdbcType=VARCHAR},
+			RULE = #{rule,jdbcType=VARCHAR},
+			UPDATE_TIME = #{updateTime,jdbcType=DATE}
+		WHERE ID = #{id,jdbcType=VARCHAR}
+	</insert>
+
+	<select id="queryWarningRule" resultType="com.gkhb.keyvehicle.model.WarningRule">
+		SELECT ID, NAME, VEHICLE_TYPE, VEHICLE_PLATE_TYPE, RULE_TYPE, RULE, CREATE_TIME, UPDATE_TIME FROM KV_DS_WRINING_RULE
+		<where>
+			<if test="id != null and id != ''">
+				AND ID = #{id}
+			</if>
+			<if test="ruleType != null">
+				AND RULE_TYPE = #{ruleType.name}
+			</if>
+			<if test="vehicleType != null and vehicleType != ''">
+				AND VEHICLE_TYPE = #{vehicleType}
+			</if>
+		</where>
+		ORDER BY CREATE_TIME ASC
+	</select>
+
+	<delete id="delete">
+		DELETE FROM KV_DS_WRINING_RULE WHERE ID = #{id}
+	</delete>
+</mapper>

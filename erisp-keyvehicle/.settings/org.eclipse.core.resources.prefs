@@ -1,0 +1,13 @@
+eclipse.preferences.version=1
+encoding//src/main/java=UTF-8
+encoding//src/main/resources=UTF-8
+encoding//src/main/resources/jdbc.properties=UTF-8
+encoding//src/main/resources/systemconfig.properties=UTF-8
+encoding//src/main/webapp/app/assets/views=UTF-8
+encoding//src/main/webapp/app/assets/views/map/trail/trail.html=UTF-8
+encoding//src/main/webapp/app/assets/views/vehicleManagement/vehicleManage/vehicleAddOrUpdate.html=UTF-8
+encoding//src/main/webapp/app/assets/views/warningDisposal/disposalEntry.html=UTF-8
+encoding//src/main/webapp/app/assets/views/warningRule/ruleBusFocusAdd.html=UTF-8
+encoding//src/main/webapp/app/assets/views/warningRule/ruleQuery.html=UTF-8
+encoding//src/test/java=UTF-8
+encoding/<project>=UTF-8

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 实时GPS位置Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.RealTimeDataMapper">
+	
+	<!-- 添加实时GPS位置 -->
+	<insert id="addRealTimeData" parameterType="com.gkhb.keyvehicle.model.RealTimeData">
+		INSERT INTO KV_REAL_TIME_DATA (
+			ID,
+			SYSTEM_NUMBER,
+			PLATE_NUMBER,
+			WARN_FLAG,
+			STATE,
+			LATITUDE,
+			LONGITUDE,
+			ALTITUDE,
+			SPEED,
+			COURSE,
+			REPORT_TIME,
+			RECEIVE_TIME,
+			ETL_STATE
+		)
+		VALUES
+			(
+				#{id},
+				#{systemNumber},
+				#{plateNumber},
+				#{warnFlag},
+				#{state},
+				#{latitude},
+				#{longitude},
+				#{altitude},
+				#{speed},
+				#{course},
+				#{reportTime},
+				#{receiveTime},
+				#{etlState}
+			);
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryRealTimeData" resultType='com.gkhb.keyvehicle.model.RealTimeData'>
+		select * from KV_REAL_TIME_DATA
+	</select>
+	
+	<!-- 查询某段时间内某辆车的位置信息MYSQL -->
+	<!-- <select id="queryLocationsByRealTimeData" resultType='com.gkhb.keyvehicle.model.GPSData' parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData">
+		SELECT m.*,v.VEHICLE_TYPE
+		FROM KV_REAL_TIME_DATA m,KV_VEHICLE_INFO v
+		WHERE m.ID IS NOT NULL
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND m.PLATE_NUMBER = #{queryConditionData.plateNumber} 
+		</if>
+		<if test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious != '' ">
+			<![CDATA[ AND m.REPORT_TIME >= DATE_FORMAT(#{queryConditionData.timePrevious},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME >= DATE_FORMAT(#{queryConditionData.startTime},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		<if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME <= DATE_FORMAT(#{queryConditionData.endTime},'%Y-%m-%d %H:%i:%s')  ]]>
+		</if>
+		AND v.PLATE_NUMBER = m.PLATE_NUMBER
+		ORDER BY m.REPORT_TIME DESC
+	</select> -->
+	
+	<!-- 查询某段时间内某辆车的位置信息ORACLE -->
+	<select id="queryLocationsByRealTimeData" resultType='com.gkhb.keyvehicle.model.GPSData' parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData">
+		SELECT m.*,v.VEHICLE_TYPE
+		FROM KV_REAL_TIME_DATA m,KV_VEHICLE_INFO v
+		WHERE m.ID IS NOT NULL
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND m.PLATE_NUMBER = #{queryConditionData.plateNumber} 
+		</if>
+		<if test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious != '' ">
+			<![CDATA[ AND m.REPORT_TIME >= to_date(#{queryConditionData.timePrevious},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		AND v.PLATE_NUMBER = m.PLATE_NUMBER
+		ORDER BY m.REPORT_TIME ASC
+	</select>
+	
+	<!-- 查询根据时间段查询GPS数据MYSQL -->
+	<!-- <select id="queryRealTimeDataByTime" resultType='com.gkhb.keyvehicle.model.RealTimeData'>
+		SELECT * FROM KV_REAL_TIME_DATA WHERE 
+		 <![CDATA[ DATE_FORMAT(REPORT_TIME, '%Y-%m-%d %H:%i:%s') < DATE_FORMAT(#{newDate}, '%Y-%m-%d %H:%i:%s')  ]]>
+	</select> -->
+	
+	<!-- 查询根据时间段查询GPS数据ORACLE -->
+	<select id="queryRealTimeDataByTime" resultType='com.gkhb.keyvehicle.model.RealTimeData'>
+		SELECT * FROM KV_REAL_TIME_DATA WHERE 
+		 <![CDATA[ REPORT_TIME < #{newDate}  ]]>
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateRealTimeData" parameterType="com.gkhb.keyvehicle.model.RealTimeData">
+		 UPDATE KV_REAL_TIME_DATAKV_REAL_TIME_DATA SET
+			 SYSTEM_NUMBER = #{systemNumber},
+			 PLATE_NUMBER = #{plateNumber},
+			 WARN_FLAG = #{warnFlag},
+			 STATE = #{state},
+			 LATITUDE = #{latitude},
+			 LONGITUDE = #{longitude},
+			 ALTITUDE = #{altitude},
+			 SPEED = #{speed},
+			 COURSE = #{course},
+			 REPORT_TIME = #{reportTime},
+			 RECEIVE_TIME = #{receiveTime},
+			 ETL_STATE = #{etlState}
+		WHERE ID = #{id}
+	</update>
+	
+	<!-- 根据时间段删除MYSQL -->
+	<!-- <delete id="deleteRealTimeDataByTime" >
+        DELETE FROM KV_REAL_TIME_DATA WHERE 
+        <![CDATA[ DATE_FORMAT(REPORT_TIME, '%Y-%m-%d %H:%i:%s') < DATE_FORMAT(#{newDate}, '%Y-%m-%d %H:%i:%s') ]]>
+    </delete> -->
+    
+    <!-- 根据时间段删除ORACLE -->
+	<delete id="deleteRealTimeDataByTime" >
+        DELETE FROM KV_REAL_TIME_DATA WHERE 
+        <!-- <![CDATA[ to_date(REPORT_TIME, 'yyyy-mm-dd hh24:mi:ss') < to_date(#{newDate}, 'yyyy-mm-dd hh24:mi:ss') ]]> -->
+    	<![CDATA[ REPORT_TIME < #{newDate} ]]>
+    </delete>
+    
+    <!-- 根据清洗状态查询GPS数据 -->
+	<select id="queryRealTimeDataByEtlState" resultType='com.gkhb.keyvehicle.model.RealTimeData'>
+		SELECT
+			*
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					KV_REAL_TIME_DATA
+				WHERE
+					ETL_STATE = #{etlState}
+				ORDER BY
+					REPORT_TIME
+			)
+		WHERE
+			<![CDATA[ ROWNUM <= 1000 ]]>
+	</select>
+	
+    <!-- 根据清洗状态查询GPS数据 -->
+	<select id="queryRealTimeDataForSpeed0"  resultType='com.gkhb.keyvehicle.model.RealTimeData'>
+		SELECT
+			*
+		FROM
+			(
+				SELECT
+					*
+				FROM
+					KV_REAL_TIME_DATA
+				WHERE
+					SPEED = 0
+					AND PLATE_NUMBER = #{gpsData.plateNumber}
+					<!-- <![CDATA[ AND REPORT_TIME <= to_date(#{gpsData.reportTime},'yyyy-mm-dd hh24:mi:ss')  ]]> -->
+					<![CDATA[ AND REPORT_TIME <= #{gpsData.reportTime} ]]>
+				ORDER BY
+					REPORT_TIME DESC
+			)
+		WHERE
+			ROWNUM = 1
+	</select>
+	
+	<!-- 批量更新清理状态为已清理 -->
+	<update id="updateRealTimeDataToEtlState1" >
+		 UPDATE KV_REAL_TIME_DATA SET
+			ETL_STATE = 1
+		WHERE ID IN
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">  
+			#{item.id}
+		</foreach> 
+	</update>
+
+</mapper>

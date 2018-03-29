@@ -1,0 +1,316 @@
+<div class="map-controller" id="map" ng-controller="demoMapCtrl">
+	<div>
+	  <div style="position: absolute;z-index:3;width:29%">
+		<div ng-show="!showall" style="float:left;z-index:3;background-color: #cce1ed;width: 86%;left:0px;height: 10%;top:0px;padding: 5px;border: 1px solid;border-color: #6f90b4;">
+			<div style="margin-left: 5px;margin-top: 5px; width: 100%;">
+				<!-- <select class="js-data-example-ajax font-yahei" style="width:16%;" disabled="disabled">
+					<option value="川" ng-selected="true">川</option>
+				</select> -->
+				<span class="js-data-example-ajax font-yahei" style="width:16%;">川</span>
+				<select class="js-data-example-ajax font-yahei" id="plateNumberLocations" style="width:15%;" ng-model="plateInfo.location">
+					<option value="A" ng-selected="true">A</option>
+				</select>
+				<input id="plateNumber" type="text" style="width: 50%;height: 30px;" placeholder="请输入车牌号码" class="font-yahei">
+				<input id="plateNumberSelect" type="image" src="assets/images/select.png" style="vertical-align: middle;" class="font-yahei"><br>
+			</div>
+			<div id="vehicleInfoDiv" style="display: none;">
+				<div style="background: #edf7f9;">
+					<div>
+						<table id="leftTable" class="table table-height">
+							<thead style="background: #cce1ed;">
+								<tr>
+									<th class="table-th font-yahei-title">号牌号码</th>
+									<th class="table-th font-yahei-title">车辆类型</th>
+									<th class="table-th font-yahei-title">牌照类型</th>
+									<th class="table-th font-yahei-title">在线状态
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr ng-repeat="data in vehicleInfoList" ng-click="checkedVehicle(data,$event)" style="cursor: pointer;">
+									<td class="table-td font-yahei">{{data.plateNumber}}</td>
+									<td class="table-td font-yahei">{{data.vehicleType}}</td>
+									<td class="table-td font-yahei">{{data.plateType | chineseType}}</td>
+									<td class="table-td font-yahei">{{data.gpsState | chineseState}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="row-fluid text-center" style="display: inline;">
+						<div>
+							<pagination total-items="totalItems" ng-model="currentPage" max-size="3" items-per-page="pageSize" class="pagination-md"
+								ng-change="pageChanged()" boundary-links="true" rotate="false" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" num-pages="numPages"> 
+							</pagination>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<input id="toRightIco" type="image" ng-show="showall"  ng-click="changeLeftRigth(!showall,'left')" src="assets/images/vehicle_query.png" class="toleftright_class">
+		<input id="toLeftIco" type="image"  ng-show="!showall" ng-click="changeLeftRigth(!showall,'left')" src="assets/images/to_left_ico.png" class="toleftright_class">
+		<input type="image"ng-click="showTotalLabel(!showTotal)" style="width:10%;height:45px;margin-top: 0.3%;" src="assets/images/vehicle_info.png"/>
+	</div>
+	</div>
+	<div style="z-index: 2;width: 60%; margin-left: 20%;position: absolute;">
+		<div ng-show="!showTotal" id="earlyWarningTotalDiv" class="mid-top center total-data">
+			<!-- 车辆总数，保留--colin -->
+			<!-- <div style="display: inline;" class="total-data">
+				<span class="total-div-span">车辆总数<font class="greenFont">{{earlyWarningInfoCounts.vehicleTotal}}</font>辆</span>
+				<span class="total-div-span">当前在线<font class="greenFont">{{earlyWarningInfoCounts.currentOnlineTotal}}</font>辆</span>
+				<span class="total-div-span">在线率<font class="greenFont">{{earlyWarningInfoCounts.currentOnlineRate | number:0}}</font>%</span> 
+				<span class="total-div-span">今日预警数<font class="redFont">{{earlyWarningInfoCounts.todayWarningTotal}}</font>次</span>
+				<span class="total-div-span">今日预警率<font class="greenFont">{{earlyWarningInfoCounts.todayWarningRate | number:0}}</font>%</span><br>
+			</div> -->
+			<div id="energy" style="display: none;">
+				<span class="total-div-span">新能源物流车辆总数<font class="greenFont">{{energyInfoCounts.allCount}}</font>辆</span>
+				<span class="total-div-span">当前在线<font class="greenFont">{{energyInfoCounts.onlineCount}}</font>辆</span>
+				<span class="total-div-span">在线率<font class="greenFont">{{energyInfoCounts.onlinePercent | number:0}}</font>%</span><br>
+				<!-- <span class="total-div-span">今日预警数<font class="redFont">{{energyInfoCounts.warningCount}}</font>次</span>
+				<span class="total-div-span">今日预警率<font class="greenFont">{{energyInfoCounts.warningPercent | number:0}}</font>%</span> -->
+			</div>
+			<div id="coldChain" style="display: none;">
+				<span class="total-div-span">冷链物流车辆总数<font class="greenFont">{{coldChainInfoCounts.allCount}}</font>辆</span>
+				<span class="total-div-span">当前在线<font class="greenFont">{{coldChainInfoCounts.onlineCount}}</font>辆</span>
+				<span class="total-div-span">在线率<font class="greenFont">{{coldChainInfoCounts.onlinePercent | number:0}}</font>%</span><br> 
+				<!-- <span class="total-div-span">今日预警数<font class="redFont">{{coldChainInfoCounts.warningCount}}</font>次</span>
+				<span class="total-div-span">今日预警率<font class="greenFont">{{coldChainInfoCounts.warningPercent | number:0}}</font>%</span> -->
+			</div>
+			<div id="dangerous" style="display: none;">
+				<span class="total-div-span">危化品物流车辆总数<font class="greenFont">{{dangerousInfoCounts.allCount}}</font>辆</span>
+				<span class="total-div-span">当前在线<font class="greenFont">{{dangerousInfoCounts.onlineCount}}</font>辆</span>
+				<span class="total-div-span">在线率<font class="greenFont">{{dangerousInfoCounts.onlinePercent | number:0}}</font>%</span><br> 
+				<!-- <span class="total-div-span">今日预警数<font class="redFont">{{dangerousInfoCounts.warningCount}}</font>次</span>
+				<span class="total-div-span">今日预警率<font class="greenFont">{{dangerousInfoCounts.warningPercent | number:0}}</font>%</span> -->
+			</div>
+			<div id="ordinary" style="display: none;">
+				<span class="total-div-span">普通物流车辆总数<font class="greenFont">{{ordinaryInfoCounts.allCount}}</font>辆</span>
+				<span class="total-div-span">当前在线<font class="greenFont">{{ordinaryInfoCounts.onlineCount}}</font>辆</span>
+				<span class="total-div-span">在线率<font class="greenFont">{{ordinaryInfoCounts.onlinePercent | number:0}}</font>%</span> 
+				<!-- <span class="total-div-span">今日预警数<font class="redFont">{{ordinaryInfoCounts.warningCount}}</font>次</span>
+				<span class="total-div-span">今日预警率<font class="greenFont">{{ordinaryInfoCounts.warningPercent | number:0}}</font>%</span> -->
+			</div>
+		</div>
+		<!-- <div style="width:45px;float:right;z-index:4;position:relative;">
+			<label>
+				<input type="image"ng-click="showTotalLabel(!showTotal)" style="width:45px;height:45px;" src="assets/images/vehicle_info.png"/>
+			</label>
+		</div> -->
+	</div>
+	
+	<!-- <div id="rightDiv" style="float:right;display: none;position: absolute;z-index:5;top:0px;right:0px;border: 1px solid;border-color: #6f90b4;" class="row col-md-4 font_black_famil">
+		<div class="col-md-2" style="margin-right:-15px;margin-top:1.2%;">
+			<input type="image"  ng-show="!showright" ng-click="toLeftRigth(!showright,'right')" ng-src="assets/images/to_rigth_ico.png" class="toleftright_class" style="float:right">
+		</div>
+		<div ng-show="!showright" style="border: 1px solid;border-color: #6f90b4;" class="white col-md-10 font_black_famil bg">
+			<div style="margin: 10px;" class="font-yahei-title"><span>今日预警信息</span></div>
+			<div style="background: #edf7f9;">
+				<table class="table table-hover table-responsive pams_table font_black_famil">
+					<thead>
+						<tr>
+							<th class="center table-th font-yahei-title">预警事件</th>
+							<th class="center table-th font-yahei-title">预警时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="data in showWarningDisposalViewList" ng-click="warningOnClick(data)" style="cursor: pointer;">
+							<td class="center table-td font-yahei">{{data.earlyWarningInfo.warningType | reverse}}</td>
+							<td class="center table-td font-yahei">{{data.earlyWarningInfo.warningStartTime.time | date:'yyyy-MM-dd hh:mm:ss'}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<input type="image" ng-show="showright"  ng-click="toLeftRigth(!showright,'right')" ng-src="assets/images/to_left_ico.png" class="toleftright_class" style="position:absolute;right:14px;margin-top:1.2%;"> 
+	</div> -->
+	<div id="rightDiv" style="float:right;display: inline;position: absolute;z-index:5;top:0px;right:0px;border-color: #6f90b4;width:10%;" class="row font_black_famil">
+		<div class="col-md-2" style="margin-right:-15px;margin-top:1.2%;">
+			<input type="image"  ng-show="showright" ng-click="toLeftRigth(!showright,'right')" ng-src="assets/images/to_left_ico.png" class="toleftright_class" style="float:right">
+		</div>
+		<div ng-show="showright" style="border: 1px solid;border-color: #6f90b4;" class="white col-md-10 font_black_famil bg">
+			<div style="font-size:14px;white-space:nowrap;"><label><input type="checkbox" class="rightCheckbox" ng-click="lineCheck($event)" name="online" value="online" checked="checked"/>在线</label></div>
+			<div style="font-size:14px;white-space:nowrap;"><label><input type="checkbox" class="rightCheckbox" ng-click="lineCheck($event)" name="offline" value="offline"/>离线</label></div>
+			<div style="font-size:14px;white-space:nowrap;"><label><input type="checkbox" class="rightCheckbox" ng-click="registerCheck($event)" name="register" value="register"/>{{registerAreaName}}</label></div>
+		</div>
+		<input type="image" ng-show="!showright"  ng-click="toLeftRigth(!showright,'right')" ng-src="assets/images/vehicle_state.png" class="toleftright_class" style="position:absolute;right:14px;margin-top:1.2%;"> 
+	</div>
+	
+	<div id="earlyWarningDisposalDiv" class="earlyWarningDiv table-height" style="display: none;">
+		<div>
+		<span id="cancleWarning" class="img-button">X</span>
+			<div style="width: 100%;background-color: #edf7f9;padding-left: 20px;padding-right: 20px;padding-bottom: 10px;padding-top: 10px;">
+				<span style="font-size: 18px;">预警处置</span>
+			</div>
+			<div class="title_line1" style="margin-left: 20px;margin-right: 20px;"></div>
+					
+			<div id="notProcessedDiv" style="padding-left: 10px;padding-right: 10px;">
+				<div style="padding:10px;">
+					<span>处置方式</span>
+					<select id="disposalMethods" ng-model="disposalMethods" class="js-data-example-ajax" style="width:70%;float: right;margin-right: 10px;" onclick="checkDisposalMethods(this.value)">
+						<option value="忽略" ng-selected="true">忽略</option>
+						<option value="处置">处置</option>
+					</select>
+				</div>
+						<div style="padding:10px;">
+							<span>处置细则</span>
+					<textarea id="disposalRules" rows="3" cols="40" style="width: 70%;float: right;margin-right: 10px;" maxlength="255">{{disposalRules}}</textarea>
+						</div><br>
+						<div id="reasonDiv" style="padding:10px;margin-top: 10px;">
+							<span>原因</span>
+							<input id="wrong" type="checkbox" style="width: 10%;margin-left: 50px;" value="误报">误报
+							<input id="repeat" type="checkbox" style="width: 10%;" value="重复预警">重复预警
+						</div>
+						<div style="padding:10px;">
+							<span>下发部门</span>
+							<select id="hyDepartment" class="js-data-example-ajax" style="width:70%;float: right;margin-right: 10px;">
+								<option value="物流云平台" ng-selected="true">物流云平台</option>
+							</select>
+						</div>
+						<div style="padding: 5px;">
+							<button ng-click="updateDisposalProcess()" type="button" class="btn pams_query" style="float: right;margin-bottom: 20px; margin-right: 20px;vertical-align: middle;">
+							<span>确定</span>
+						</button>
+					</div>
+					</div>
+					<!-- 预警处理信息处理之后的展示(保留)
+					<div id="processedDiv" style="padding: 10px;display: none;">
+						<div style="padding:10px;"><span>处置方式:</span></div>
+						<div style="padding:10px;"><span>处置部门:</span></div>
+						<div style="padding:10px;"><span>抄告部门:</span></div>
+						<div style="padding:10px;"><span>抄告单位:</span></div>
+					</div> -->
+		</div>
+	</div>
+	
+	<div style="z-index:100;text-align:left;position:absolute;bottom: 0;float: left;">
+		<div class="col-md-2" style="margin-bottom: -2%;">
+			<input type="image"  ng-show="showAllTypeIco" ng-click="toUpDown(!showAllTypeIco,'down')" ng-src="assets/images/to_down_ico.png" class="to_up_down">
+		</div><br>
+		<div ng-show="showAllTypeIco" style="border: 1px solid;border-color: #6f90b4;" class="white font_black_famil bg">
+			<img src="assets/images/new-energy-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;新能源物流车<br>
+			<img src="assets/images/dangerous-goods-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;危险品物流车<br>
+			<img src="assets/images/cold-chain-vehicle-online-90.png" style="margin-left:10px;width:35px;height:100%;font-size:14px;">&nbsp;&nbsp;冷链物流车<br>
+			<img src="assets/images/ordinary-vehicle-online-90.png" style="margin-left:10px;width:35px;height:35px;font-size:14px;">&nbsp;&nbsp;普通物流车&nbsp;&nbsp;
+		</div>
+		<input type="image" ng-show="!showAllTypeIco"  ng-click="toUpDown(!showAllTypeIco,'down')" ng-src="assets/images/to_up_ico.png" class="to_up_down" style="position:absolute;margin-top:2%;bottom: 8%;"> 
+	</div>
+	
+	<div id="accident" class="aiDiv" style="clear:left">
+		<p style="width:100%;height:25px;background-color:#F2F2F2;margin-bottom:0px;">
+			<span id="closeAccident" class="img-button">
+				<img src="assets/images/div_close.png" style="opacity:0.4;"/>
+			</span>
+		</p>
+		<div class="table-responsive" style="height:425px;">
+		<table class="table text-nowrap table-hover table-responsive pams_table font_black_famil">
+			<thead>
+				<tr>
+					<th class="center table-th font-yahei-title" width="20%">车牌号码</th>
+					<th class="center table-th font-yahei-title" width="20%">事故发生时间</th>
+					<th class="center table-th font-yahei-title" width="30%">事故发生地点</th>
+					<th class="center table-th font-yahei-title" width="30%">事故责任</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="data in accidentInfoList">
+					<td class="center table-td font-yahei">{{data.plateNumber}}</td>
+					<td class="center table-td font-yahei">{{data.accidentTime.time | date:'yyyy-MM-dd hh:mm:ss'}}</td>
+					<td class="center table-td font-yahei">{{data.accidentPlace}}</td>
+					<td class="center table-td font-yahei">{{data.accidentLiability}}</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+	<div id="illegal" class="aiDiv" style="clear:left">
+		<p style="width:100%;height:25px;background-color:#F2F2F2;margin-bottom:0px;">
+			<span id="closeIllegal" class="img-button">
+				<img src="assets/images/div_close.png" style="opacity:0.4;"/>
+			</span>
+		</p>
+		<div class="table-responsive" style="height:425px;">
+		<table class="table text-nowrap table-hover table-responsive pams_table font_black_famil">
+			<thead>
+				<tr>
+					<th class="center table-th font-yahei-title" width="20%">车牌号码</th>
+					<th class="center table-th font-yahei-title" width="20%">违法时间</th>
+					<th class="center table-th font-yahei-title" width="30%">违法地点</th>
+					<th class="center table-th font-yahei-title" width="30%">违法行为</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="data in illegalInfoList">
+					<td class="center table-td font-yahei">{{data.plateNumber}}</td>
+					<td class="center table-td font-yahei">{{data.illegalTime.time | date:'yyyy-MM-dd hh:mm:ss'}}</td>
+					<td class="center table-td font-yahei">{{data.illegalPlace}}</td>
+					<td class="center table-td font-yahei">{{data.illegalBehavior}}</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+	<div id="bayonet" class="aiDiv" style="clear:left">
+		<p style="width:100%;height:25px;background-color:#F2F2F2;margin-bottom:0px;">
+			<span id="closeBayonet" class="img-button">
+				<img src="assets/images/div_close.png" style="opacity:0.4;"/>
+			</span>
+		</p>
+		<div class="table-responsive" style="height:425px;">
+		<table class="table text-nowrap table-hover table-responsive pams_table font_black_famil">
+			<thead>
+				<tr>
+					<th class="center table-th"></th>
+					<th class="center table-th">卡口位置</th>
+					<th class="center table-th">时间</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="data in bayonetData" ng-click="bayonetOnClick(data)" style="cursor: pointer;">
+					<td class="center table-td">{{$index + 1}}</td>
+					<td class="center table-td">{{data.fstrLocation}}</td>
+					<td class="center table-td">{{data.fdtTime.time | date:'yyyy-MM-dd hh:mm:ss'}}</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+	<div id="bayonetAddressDiv" class="aiImgDiv">
+		<p style="width:100%;height:25px;background-color:#F2F2F2;margin-bottom:0px;">
+			<span id="closeBayonetAddressDiv" class="img-button">
+				<img src="assets/images/div_close.png" style="opacity:0.4;"/>
+			</span>
+		</p>
+		<div style="background-color: #d7d7d7;height: 28px;padding: 5px;">卡口位置</div>
+		<div style="background-color: #f2f2f2;padding: 10px;">位置：{{bayonetInfo.fstrLocation}}</div>
+		<div><img id="img" class="img" src="{{bayonetInfo.fstrPictrueurl}}"></img></div>
+	</div>
+	
+</div>
+
+<div id="msgDiv" style="text-align:center;position: fixed;top: 50%;left: 50%;background:#A2B5CD;width:250px;height:50px;margin:-50px 0 0 -50px;display:none;border-radius:8px;">
+	<p style="font-size:20px;margin-top:10px;color:#666666;">暂无该车辆GPS数据</p>
+</div>
+<div id="background_layer" style="display:none;"></div>
+<div id="progressbar" style="width:64px; height:64px;background:0" class="progress">
+	<img src="assets/images/load_img.gif" style="width:64px; height:64px;">
+</div>
+<div id="dataLoad" class="msgDiv" style="display: none;">
+	<p style="font-size:20px;margin-top:10px;color:#666666;">数据加载中..</p>
+</div>
+<div id="notData" class="msgDiv" style="text-align:center;position: fixed;top: 50%;left: 50%;background:#A2B5CD;width:250px;height:50px;margin:-50px 0 0 -50px;display:none;border-radius:8px;">
+	<p style="font-size:20px;margin-top:10px;color:#666666;z-index: 9999999;">无数据</p>
+</div>
+<div id="errorDiv" class="msgDiv" style="text-align:center;position: fixed;top: 50%;left: 50%;background:#A2B5CD;width:250px;height:50px;margin:-50px 0 0 -50px;display:none;border-radius:8px;">
+	<p style="font-size:20px;margin-top:10px;color:#666666;z-index: 9999999;">系统错误，请重新查询！</p>
+</div>
+
+
+
+
+
+
+
+
+
+	
+
+

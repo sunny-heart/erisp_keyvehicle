@@ -1,0 +1,87 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.model.GPSData;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView;
+import com.gkhb.keyvehicle.service.VehicleRealTimeInfoService;
+import com.gkhb.keyvehicle.service.etl.WarningEtlService;
+
+/**
+ *	车辆实时信息控制器
+ *	@author Colin
+ *	@createTime 2017年7月4日 上午9:50:52
+ */
+@Controller
+@RequestMapping("/vehicleRealTimeInfo")
+public class VehicleRealTimeInfoController extends BaseController{
+	
+	@Autowired
+	private VehicleRealTimeInfoService vehicleRealTimeInfoService;
+	
+	@Autowired
+	private WarningEtlService warningEtlService;
+
+	/**
+	 * 查询所有车辆实时信息
+	 * @return
+	 */
+	@RequestMapping(value = "/queryVehicleRealTimeInfo" , method = RequestMethod.GET)
+    public Model queryVehicleRealTimeInfo(QueryConditionData queryConditionData){
+        Model model = new ExtendedModelMap();
+        List<VehicleRealTimeInfoView> vehicleRealTimeInfoList = vehicleRealTimeInfoService.queryVehicleRealTimeInfo();
+        model.addAttribute("vehicleRealTimeInfo", vehicleRealTimeInfoList);
+        return model;
+    }
+	
+	/**
+	 * 查询某一辆车的实时信息
+	 * @return
+	 */
+	@RequestMapping(value = "/queryOneVehicleRealTimeInfo" , method = RequestMethod.GET)
+    public Model queryOneVehicleRealTimeInfo(String plateNumber){
+        Model model = new ExtendedModelMap();
+        VehicleRealTimeInfoView oneVehicleRealTimeInfo = vehicleRealTimeInfoService.queryOneVehicleRealTimeInfo(plateNumber);
+        model.addAttribute("oneVehicleRealTimeInfo", oneVehicleRealTimeInfo);
+        return model;
+    }
+	
+	/**
+	 * 查车辆行驶时间和速度等
+	 * @return
+	 */
+	@RequestMapping(value = "/queryVehicleDriveInfo" , method = RequestMethod.GET)
+    public Model queryVehicleDriveInfo(String plateNumber){
+		if(plateNumber==null || plateNumber.equals("")){return null;}
+        Model model = new ExtendedModelMap();
+        VehicleRealTimeInfoView vehicleDriveInfo = null;
+        vehicleDriveInfo = vehicleRealTimeInfoService.queryVehicleDriveInfo(plateNumber);
+        if(vehicleDriveInfo==null){
+        	vehicleDriveInfo = new VehicleRealTimeInfoView();
+        	vehicleDriveInfo.setSpeed(0);
+        	vehicleDriveInfo.setCourse(0);
+        	vehicleDriveInfo.setDriveTime(0);
+        	vehicleDriveInfo.setContinueDriveTime(0);
+        	vehicleDriveInfo.setWarningTimes(0);
+        }
+        long continueDriveTime = 0;
+        if(vehicleDriveInfo!=null && vehicleDriveInfo.getReportTime()!=null){
+        	GPSData data = new GPSData();
+            data.setPlateNumber(plateNumber);
+            data.setReportTime(vehicleDriveInfo.getReportTime());
+            warningEtlService.getContinueDrivingTime(data);
+        }
+        vehicleDriveInfo.setContinueDriveTime(continueDriveTime);
+        model.addAttribute("vehicleDriveInfo", vehicleDriveInfo);
+        return model;
+    }
+}

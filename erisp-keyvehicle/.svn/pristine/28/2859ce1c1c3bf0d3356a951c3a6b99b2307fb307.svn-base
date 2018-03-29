@@ -1,0 +1,356 @@
+.pams_input_label {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #2cbd69;
+	background-color: #F7F7F7;
+	color: #2cbd69;
+}
+
+
+
+.pams_input {
+	border-style: solid !important;
+	border-width: 1px !important;
+	border-color: #c1c1c1 !important;
+	border-radius: 0px !important;
+	font-size:14px;
+	color:#000000;
+}
+.pams_query{
+	background-color: #e4e4e4;
+	color: #000000;
+	border-color: #c4c4c4;
+	font-size:14px;
+	width: 61px;
+    height: 28px;
+}
+.pams_reset{
+	/* background-color: #4cc8d1; */
+	background-color: #e4e4e4;
+	color: #000000;
+	border-color: #c4c4c4;
+	font-size:14px;
+	width: 61px;
+    height: 28px;
+}
+.pams_add{
+	/* background-color: #62add5; */
+	background-color: #e4e4e4;
+	color: #000000;
+	border-color: #c4c4c4;
+	font-size:14px;
+	width: 61px;
+    height: 28px;
+}
+.pams_cancel{
+	/* background-color: #4cc8d1; */
+	background-color: #e4e4e4;
+	color: #000000;
+	border-color: #c4c4c4;
+	font-size:14px;
+	width: 61px;
+    height: 28px;
+}
+.pams_span{
+	font-size: 14px !important;
+	color: #2cdb69 !important;
+}
+.modal-title{
+	color: #2cdb69 !important;
+}
+.pams_title{
+	color: #2cdb69 !important;
+	font-size: 18px !important;
+}
+.pams_select{
+	border: 1px solid #2cbd69 !important;
+	border-radius: 4px !important;
+	width: 70%;
+}
+.pams_input_addOrUpdate{
+	width:70%;
+	border-radius:4px;
+	border-style: solid !important;
+	border-width: 1px !important;
+	border-color: #c4c4c4 !important;
+}
+.pams_splitLine {
+ 	height:1px;
+ 	width:100%;
+ 	background:#33a362;
+ 	overflow:hidden;
+ 	margin-bottom: 15px;
+ }
+ 
+/* .pams_table tr:nth-child(odd) {
+ background-color: #ffffff;
+}
+.pams_table tr:nth-child(even) {
+ background-color: #2cdb69;
+} */
+ 
+ .cs-skin-slide>span::after {
+ 	color: #33a362;.pams_input_label {
+	border-style: solid;
+	border-width: 1px;
+	border-color: #2cbd69;
+	background-color: #F7F7F7;
+	color: #2cbd69;
+}
+
+
+
+.pams_input {
+	border-style: solid !important;
+	border-width: 1px !important;
+	border-color: #c1c1c1 !important;
+	border-radius: 0px !important;
+	font-size:14px;
+	color:#000000;
+}
+.pams_query{
+	background-color: #51b17a;
+	color: #e4e4e4;
+}
+.pams_reset{
+	/* background-color: #4cc8d1; */
+	background-color: #51b17a;
+	color: #e4e4e4;
+}
+.pams_add{
+	/* background-color: #62add5; */
+	background-color: #51b17a;
+	color: #e2e2e2;
+}
+.pams_cancel{
+	/* background-color: #4cc8d1; */
+	background-color: #51b17a;
+	color: #e4e4e4;
+}
+.pams_span{
+	font-size: 14px !important;
+	color: #2cdb69 !important;
+}
+.modal-title{
+	color: #2cdb69 !important;
+}
+.pams_title{
+	color: #2cdb69 !important;
+	font-size: 18px !important;
+}
+.pams_select{
+	border: 1px solid #2cbd69 !important;
+	border-radius: 4px !important;
+	width: 70%;
+}
+.pams_input_addOrUpdate{
+	width:70%;
+	border-radius:4px;
+	border-style: solid !important;
+	border-width: 1px !important;
+	border-color: #2cbd69 !important;
+}
+.pams_splitLine {
+ 	height:1px;
+ 	width:100%;
+ 	background:#33a362;
+ 	overflow:hidden;
+ 	margin-bottom: 15px;
+ }
+ 
+/* .pams_table tr:nth-child(odd) {
+ background-color: #ffffff;
+}
+.pams_table tr:nth-child(even) {
+ background-color: #2cdb69;
+} */
+ 
+ .cs-skin-slide>span::after {
+ 	color: #33a362;
+ }
+
+/* bootstarp-modal引用select2专用*/
+body> .select2-container {
+	z-index:99999;
+}
+/* .dropdown-menu.dropdown-dark {
+	background-color: #00BDCC;
+    border: 1px solid #039EAB;
+} */
+
+.pams_menu{
+	font-size: 20px;
+	font-family:'黑体';
+}
+.pams_menu1{
+	font-size: 18px;
+	font-family:'黑体';
+}
+#sidebar>div nav>ul>li.active>a .fa{
+	color:#32a263;
+}
+#sidebar>div nav>ul>li.active{
+	background-color: #f3f3f3;
+}
+#sidebar nav > ul .sub-menu > li.active a .title{
+	color:#32a263;
+}
+#sidebar nav > ul > li > a .item-inner:hover {
+  color:#32a263 !important;
+ /*  background-color: #32a263 !important; */
+}
+
+
+/* 详情页面关联资产添加样式 guowei 2016.9.1 */
+.detail_relation_border{
+	border:3px solid #33a362;
+}
+#relationDiv fieldset fieldset{
+	padding:15px;
+}
+#relationDiv fieldset > img {
+	float:left;
+}
+#relationDiv fieldset > span {
+	float:left;
+	margin:5px 0px 5px 5px; /* 上右下左 */
+	width:65%;
+	white-space: nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+#一级标题
+.vehicle_title_1{
+	font-size: 14px !important;
+	font-weight: bolder !important;
+	color:#003859 !important;
+	font-family:'微软雅黑' !important;
+	background-color: #CCE1ED !important;
+}
+
+#二级标题
+.vehicle_title_2{
+	font-size: 14px !important;
+	color:#003859 !important;
+	font-family:'微软雅黑' !important;
+}
+
+#三级标题
+.vehicle_title_3{
+	font-size: 12px !important;
+	color:#003859 !important;
+	font-family:'微软雅黑' !important;
+}
+
+#sidebar nav > ul .sub-menu > li :hover{
+	font-weight: bolder !important;
+	background-color: #ffcc46 !important;
+}
+
+#导航宽度
+.nav_width{
+	width:200px
+}
+
+ 	
+ }
+
+/* bootstarp-modal引用select2专用*/
+body> .select2-container {
+	z-index:99999;
+}
+/* .dropdown-menu.dropdown-dark {
+	background-color: #00BDCC;
+    border: 1px solid #039EAB;
+} */
+
+.pams_menu{
+	font-size: 20px;
+	font-family:'黑体';
+}
+.pams_menu1{
+	font-size: 18px;
+	font-family:'黑体';
+}
+#sidebar>div nav>ul>li.active>a .fa{
+	color:#32a263;
+}
+#sidebar>div nav>ul>li.active{
+	background-color: #f3f3f3;
+}
+#sidebar nav > ul .sub-menu > li.active a .title{
+	color:#32a263;
+}
+#sidebar nav > ul > li > a .item-inner:hover {
+	text-decoration: underline;
+	/* padding-bottom: 5px;
+    border-bottom: 2px solid #f89; */
+}
+#sidebar nav > ul .sub-menu > li :hover{
+	color: #000000!important;
+}
+/* 详情页面关联资产添加样式 guowei 2016.9.1 */
+.detail_relation_border{
+	border:3px solid #33a362;
+}
+#relationDiv fieldset fieldset{
+	padding:15px;
+}
+#relationDiv fieldset > img {
+	float:left;
+}
+#relationDiv fieldset > span {
+	float:left;
+	margin:5px 0px 5px 5px; /* 上右下左 */
+	width:65%;
+	white-space: nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+
+.title_text{
+    font-size:18px;
+    font-weight:bold;
+    color:#000;
+    font-family:'微软雅黑';
+    margin-top:20px;
+}
+
+.title_line{
+    margin-top:5px;
+    border-top:2px solid #808080;
+    height:15px;
+}
+
+.title_line1{
+    margin-top:5px;
+    border-top:1px solid #c1c1c0;
+    height:20px;
+}
+
+.font_black_famil{
+    color:#000000 !important;
+    font-family:'微软雅黑' !important;
+}
+.button_local_right{
+    text-align:right;
+    padding-right:0px;
+}
+#background_layer{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    display: block;
+    z-index: 10;
+    opacity: 0.2;
+}
+.btn:active{
+    padding-bottom:9px;
+    padding-left:12px;
+    padding-right:8px;
+    padding-top:6px;
+}

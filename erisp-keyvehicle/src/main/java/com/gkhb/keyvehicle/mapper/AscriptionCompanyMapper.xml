@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 所属企业Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.AscriptionCompanyMapper">
+	
+	<!-- 查询出租车所属企业 -->
+	<select id="queryAscriptionCompany" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.AscriptionCompany'>
+		SELECT K.* FROM KV_ASCRIPTION_COMPANY K
+		<where>
+			<if test="queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany != '' ">
+				AND K.COMPANY_NAME LIKE CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		</where>
+		ORDER BY K.COMPANY_NAME ASC
+	</select>
+	
+	<!-- 查询物流车的所属企业 -->
+	<select id="queryVehicleInfoAscriptionCompany" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.AscriptionCompany'>
+		SELECT distinct K.ascription_company FROM KV_VEHICLE_INFO K
+		where K.state = 0
+			<if test="queryConditionData.ascriptionCompany != null and queryConditionData.ascriptionCompany != '' ">
+				AND K.ascription_company LIKE CONCAT(CONCAT('%', #{queryConditionData.ascriptionCompany}),'%')
+			</if>
+		ORDER BY K.ascription_company ASC
+	</select>
+</mapper>

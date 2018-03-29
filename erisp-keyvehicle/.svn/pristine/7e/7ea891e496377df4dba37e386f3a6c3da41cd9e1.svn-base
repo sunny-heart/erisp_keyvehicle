@@ -1,0 +1,202 @@
+/**
+ * 车辆详情
+ */
+app.controller('warningDetailsController', ['$scope','$filter','$log','$modal', '$modalInstance','SweetAlert', 'params','warningQueryService','$timeout',
+  function($scope,$filter,$log,$modal,$modalInstance,SweetAlert,params,warningQueryService,$timeout) {
+	
+//    $scope.warningDetailsModel = {};
+//	$scope.disposalProcess['disposalMethods'] = "处置";
+//	$scope.disposalMethods = "处置";
+//    $scope.hyDepartment = "物流云平台";
+    $scope.disposalProcess = {};
+    $scope.warningId = params.warningDetails.id;
+    console.log($scope.warningId);
+    
+  //取消
+    $scope.cancel = function() {
+        $modalInstance.dismiss('cancel');
+    };
+    
+    //加载数据
+//    $scope.warningDetailsModel = params.warningDetails;
+	
+    //根据预警Id查询预警处置信息，预警信息，车辆信息
+    $scope.queryOneWarningDisposalInfo = function () {
+    	console.log($scope.warningId);
+    	warningQueryService.queryOneWarningDisposalInfo($scope.warningId,function (data) {
+			 if (data.state == 200) {
+				$scope.warningDisposalView = data.messageBody.queryOneWarningDisposalInfo;
+				console.log($scope.warningDisposalView);
+				//处置流程信息
+		    	$scope.disposalProcess = $scope.warningDisposalView.disposalProcess;
+		    	/*var result = $scope.disposalProcess.jgDisposalInstructions;
+		    	if(null != result){
+		    		var split=result.split(",");
+		    		$scope.disposalMethods = split[0];
+		    		if(split[0] == "处置"){
+		    			var split2=split[1].split("：");
+		    			$scope.disposalProcess['department'] = split2[1];
+		    		}else if(split[0] == "忽略"){
+		    			var split2=split[1].split("：");
+		    			$scope.disposalProcess['reason'] = split2[1];
+		    		}
+		    	}*/
+		    	//预警信息
+		    	$scope.earlyWarningInfo = $scope.warningDisposalView.earlyWarningInfo;
+		    	$scope.disposalMethods = $scope.earlyWarningInfo.dsiposalWay;
+		    	//预警事件、预警说明格式化
+		    	switch($scope.earlyWarningInfo.warningType)
+		    	{
+			    	case '1':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="违反时间区域行驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆不按照时间区域行驶！";
+			      	  	break;
+			    	case '3':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="超速行驶";
+			    		if(undefined == $scope.earlyWarningInfo.id || $scope.earlyWarningInfo.id == '' || $scope.earlyWarningInfo.id == null){
+			    			if(null != $scope.earlyWarningInfo.speed && undefined != $scope.earlyWarningInfo.speed){
+			    				$scope.earlyWarningInfo['warningExplain'] = "超速行驶，当前时速" + parseInt($scope.earlyWarningInfo.speed) + "公里/小时！";
+			    			}else{
+			    				$scope.earlyWarningInfo['warningExplain'] = "超速行驶";
+			    			}
+			    		}else{
+			    			if(null != $scope.earlyWarningInfo.limitedMaxSpeed && undefined != $scope.earlyWarningInfo.limitedMaxSpeed
+			    					&& null != $scope.earlyWarningInfo.speed && undefined != $scope.earlyWarningInfo.speed){
+			    				$scope.earlyWarningInfo['warningExplain'] = "超速行驶，限速为" + $scope.earlyWarningInfo.limitedMaxSpeed + "公里/小时，当前时速" + parseInt($scope.earlyWarningInfo.speed) + "公里/小时！";
+			    			}else{
+			    				$scope.earlyWarningInfo['warningExplain'] = "超速行驶";
+			    			}
+			    		}
+			    		break;
+			    	case '4':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="疲劳驾驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆连续行驶4小时以上未进行20分钟休息！";
+			    		break;
+		    	}
+		    	//车辆信息
+		    	$scope.vehicleInfo = $scope.warningDisposalView.vehicleInfo;
+		    	$scope.vehicleInfo['vehicleKind'] = "物流车";
+		    	
+		    	//处置细则
+		    	var date = new Date().setTime($scope.earlyWarningInfo.warningStartTime.time);
+			    	var dateAsString = $filter('date')(date, "yyyy年MM月dd日 HH时mm分ss秒"); 
+			    	if(undefined != $scope.vehicleInfo.vehicleType &&  null != $scope.vehicleInfo.vehicleType && undefined != $scope.earlyWarningInfo.warningExplain && null != $scope.earlyWarningInfo.warningExplain){
+			    		$scope.disposalRules = dateAsString + $scope.vehicleInfo.vehicleType + "["+$scope.vehicleInfo.plateNumber+"]" + $scope.earlyWarningInfo.warningExplain;
+			    	}else{
+			    		$scope.disposalRules = "无";
+			    	}
+			    	if($scope.earlyWarningInfo.warningExplain == "" || $scope.earlyWarningInfo.warningExplain == null || $scope.earlyWarningInfo.warningExplain == undefined
+			    			|| $scope.earlyWarningInfo.roadName == "" || $scope.earlyWarningInfo.roadName == null || $scope.earlyWarningInfo.roadName == undefined){
+			    		$scope.earlyWarningInfo.content = "无";
+			    	}else{
+			    		$scope.earlyWarningInfo.content = "车牌号为【"+$scope.vehicleInfo.plateNumber+"】"+"车辆在"+$scope.earlyWarningInfo.roadName + $scope.earlyWarningInfo.warningExplain;
+			    	}
+			 }
+		 }, function (err) {
+		 })
+    };
+    
+    //初始化
+    $scope.queryOneWarningDisposalInfo();
+    
+}]);
+
+//预警类型格式化
+app.filter('reverse', function() { //可以注入依赖
+    return function(text) {
+    	switch(text)
+    	{
+    	case '1':
+    		return "时间区域预警";
+    		break;
+    	case '3':
+    		return "超速预警";
+    		break;
+    	case '4':
+    		return "疲劳驾驶预警";
+    		break;
+    	}
+    }
+});
+
+//判断数据是否为空
+app.filter('chineseIsNull', function() { //可以注入依赖
+    return function(text) {
+    	switch(text)
+    	{
+	    	case null:
+	    	case undefined:
+	    	case "":
+	    		return "无";
+	    		break;
+	    	default :
+	    		return text;
+	    		break;
+    	}
+    }
+});
+
+//判断处置人是否为空
+app.filter('userIsNull', function() { //可以注入依赖
+	return function(text) {
+		switch(text)
+		{
+		case null:
+		case undefined:
+		case "":
+			return "未获取到处置人";
+			break;
+		default :
+			return text;
+		break;
+		}
+	}
+});
+
+//车牌类别转化
+app.filter('chineseType', function() { 
+	return function(text) {
+		switch(text)
+		{
+		case '01':
+			return "黄牌";
+			break;
+		case '02':
+			return "蓝牌";
+			break;
+		default : 
+			return "";
+		}
+	}
+});
+
+//处置方式转化
+app.filter('disposal', function() { 
+	return function(text) {
+		switch(text)
+		{
+		case "0":
+			return "未处置";
+			break;
+		case "1":
+			return "派警处置";
+			break;
+		case "2":
+			return "抄告处置";
+			break;
+		case "3":
+			return "误报";
+			break;
+		case "4":
+			return "重复预警";
+			break;
+		case "5":
+			return "不处置，其他原因";
+			break;
+		case "6":
+			return "已录入";
+			break;
+		break;
+		}
+	}
+});

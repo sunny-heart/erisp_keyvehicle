@@ -1,0 +1,51 @@
+app.factory("warningQueryService",["$http",function($http) {
+	
+		// GET预警查询
+    	function queryEarlyWaringInfoList(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/earlyWarningInfo/queryEarlyWaringInfoList";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// 根据预警Id查询预警处置信息，预警信息，车辆信息
+    	function queryOneWarningDisposalInfo(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/warningDisposal/queryOneWarningDisposalInfo";
+            $http({
+                url : dataUrl,
+                method : "GET",
+                params : {warningId:params}
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+    	// 修改抄报状态
+    	function updateJgCcState(params,success,error) {
+            var dataUrl = "/erisp-keyvehicle/service/disposalProcess/updateJgCcState";
+            $http({
+                url : dataUrl,
+                method : "POST",
+                params : params
+            }).success(function(data) {
+                success(data);
+            }).error(function(data) {
+                error(data)
+            });
+    	}
+    	
+	    return {
+	    	queryEarlyWaringInfoList:queryEarlyWaringInfoList,
+	    	queryOneWarningDisposalInfo:queryOneWarningDisposalInfo,
+	    	updateJgCcState:updateJgCcState
+	    }
+    }
+])

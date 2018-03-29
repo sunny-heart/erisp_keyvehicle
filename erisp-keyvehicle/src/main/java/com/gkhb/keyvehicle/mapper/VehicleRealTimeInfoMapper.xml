@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 车辆实时信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleRealTimeInfoMapper">
+
+	<!-- 查询车辆实时信息 -->
+	<select id="queryVehicleRealTimeInfo" resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+		<!-- SELECT R.ID,R.PLATE_NUMBER,R.LATITUDE,R.LONGITUDE,R.REPORT_TIME FROM KV_REAL_TIME_DATA R -->
+		SELECT R.ID,R.PLATE_NUMBER,R.LATITUDE,R.LONGITUDE,R.REPORT_TIME,KVI.VEHICLE_TYPE,KVI.VEHICLE_FRAME_NUMBER FROM KV_REAL_TIME_DATA R
+		LEFT JOIN kv_vehicle_info KVI ON KVI.PLATE_NUMBER=R.PLATE_NUMBER
+		inner join (
+		SELECT R2.PLATE_NUMBER,MAX(R2.REPORT_TIME) rtime FROM KV_REAL_TIME_DATA R2 group by R2.plate_number
+		) RR on RR.plate_number=R.plate_number and RR.rtime=R.report_time
+		order by R.plate_number desc
+	</select>
+	
+	<!-- 查询某一辆车的实时信息 -->
+	<select id="queryOneVehicleRealTimeInfo" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+		<!-- MySQL -->
+		<!-- select krtd.ID,krtd.PLATE_NUMBER,krtd.LATITUDE,krtd.LONGITUDE,krtd.REPORT_TIME,KVI.VEHICLE_TYPE from kv_real_time_data krtd 
+    	left join kv_vehicle_info kvi on kvi.PLATE_NUMBER=krtd.PLATE_NUMBER
+    	where 1=1 
+    	<if test=" plateNumber != null and plateNumber != '' ">
+			and krtd.PLATE_NUMBER = #{plateNumber}
+		</if>
+		ORDER BY krtd.REPORT_TIME desc limit 1 -->
+		
+		<!-- Oracle -->
+		<!-- select * from (
+		select KVI.ID,krtd.PLATE_NUMBER,krtd.LATITUDE,krtd.LONGITUDE,krtd.WARN_FLAG,krtd.REPORT_TIME,
+		KVI.VEHICLE_TYPE,KVI.ASCRIPTION_COMPANY,KVI.COMPETENT_AUTHORITY,KVI.VEHICLE_FRAME_NUMBER,
+		KVI.PLATE_TYPE,KVI.INTO_CITY_CARD,KVI.PLATE_PICTURE_URL,KVI.REGISTRATION_DATE,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(kvi.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(kvi.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state
+		from (SELECT MAX(REPORT_TIME) AS REPORT_TIME,PLATE_NUMBER FROM KV_REAL_TIME_DATA GROUP BY PLATE_NUMBER) B,kv_real_time_data krtd 
+    	left join kv_vehicle_info kvi on kvi.PLATE_NUMBER=krtd.PLATE_NUMBER
+    	where krtd.REPORT_TIME=B.REPORT_TIME AND krtd.PLATE_NUMBER=B.PLATE_NUMBER 
+    	<if test=" plateNumber != null and plateNumber != '' ">
+			and krtd.PLATE_NUMBER = #{plateNumber}
+		</if>
+		ORDER BY krtd.REPORT_TIME desc
+		) where rownum=1 -->
+		<!-- 查询车辆信息不再联合实时数据表查询 -->
+		select * from (
+		select KVI.ID,
+		KVI.VEHICLE_TYPE,KVI.ASCRIPTION_COMPANY,KVI.COMPETENT_AUTHORITY,KVI.VEHICLE_FRAME_NUMBER,
+		KVI.PLATE_TYPE,KVI.INTO_CITY_CARD,KVI.PLATE_PICTURE_URL,KVI.REGISTRATION_DATE,
+		(case when to_date(to_char(ADD_MONTHS(sysdate, -12),'yyyy') || '-' || TO_CHAR(kvi.registration_date, 'MM-DD'),'yyyy-mm-dd HH:mi:ss')&gt;=to_date(to_char(kvi.mot_test_date,'yyyy-mm-dd HH:mi:ss'),'yyyy-mm-dd HH:mi:ss') then '未年审' else '正常' end) as mot_test_state
+		from kv_vehicle_info kvi
+    	<where> 
+	    	<if test=" plateNumber != null and plateNumber != '' ">
+				and KVI.PLATE_NUMBER = #{plateNumber}
+			</if>
+		</where>
+		) where rownum=1
+	</select>
+	
+	<select id="queryVehicleRealTimeInfoSpeed" resultType='java.lang.Double'>
+	   select r.speed from kv_real_time_data r
+	</select>
+	
+	<!-- 统计某时间内的预警次数 -->
+	<select id="queryOneWarningTotal" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+      select count(1) warning_times from kv_early_warning_info kewi
+	        <where>
+		        <if test="queryConditionData.vehicleId != null and queryConditionData.vehicleId != '' ">
+		        	and kewi.vehicle_id=#{queryConditionData.vehicleId}
+		        </if>
+		        and to_char(kewi.warning_start_time, 'yyyy-mm-dd')=to_char(#{queryConditionData.currentDate}, 'yyyy-mm-dd')
+	        </where>
+	</select>
+	
+	<!-- 统计当前年度的预警次数 -->
+	<select id="queryCurrentYearWarningTotal" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+      select count(1) year_warning_times from kv_early_warning_info kewi
+	        <where>
+		        <if test="queryConditionData.vehicleId != null and queryConditionData.vehicleId != '' ">
+		        	and kewi.vehicle_id=#{queryConditionData.vehicleId}
+		        </if>
+		        and to_char(kewi.warning_start_time, 'yyyy')=to_char(#{queryConditionData.currentDate}, 'yyyy')
+	        </where>
+	</select>
+	
+	<select id="queryVehicleDriveInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.view.VehicleRealTimeInfoView'>
+      select k1.*,
+      (select max(kr.speed) from kv_real_time_data kr where to_char(kr.report_time, 'yyyy-mm-dd')=to_char(#{queryConditionData.currentDate}, 'yyyy-mm-dd') and kr.plate_number=k1.plate_number) as maxSpeed
+       from
+		(select krtd.plate_number,krtd.speed,krtd.course,krtd.report_time from kv_real_time_data krtd where krtd.plate_number=#{queryConditionData.plateNumber} order by krtd.report_time desc) k1
+	  where rownum=1
+	</select>
+</mapper>

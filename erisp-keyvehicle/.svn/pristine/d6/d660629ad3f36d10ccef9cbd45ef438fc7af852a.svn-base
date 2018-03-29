@@ -1,0 +1,171 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.common.spring.ModelMapFactory;
+import com.gkhb.keyvehicle.common.utils.DateUtils;
+import com.gkhb.keyvehicle.common.utils.JsonUtils;
+import com.gkhb.keyvehicle.model.VehicleInfo;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.VehicleInfoView;
+import com.gkhb.keyvehicle.service.VehicleInfoService;
+
+
+/**
+ *	车辆信息控制器
+ *	@author Colin
+ *	@createTime 2017年7月3日 上午11:28:29
+ */
+@Controller
+@RequestMapping("/vehicleInfo")
+public class VehicleInfoController extends BaseController{
+	
+	@Autowired
+	private VehicleInfoService vehicleInfoService;
+	
+	/**
+	 * 分页查询车辆信息
+	 * @param queryConditionData
+	 * @return
+	 */
+    @RequestMapping(value = "/queryVehicleInfo" , method = RequestMethod.GET)
+    public Model queryVehicleInfo(QueryConditionData queryConditionData){
+        Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        List<VehicleInfoView> vehicleInfoList = vehicleInfoService.queryVehicleInfo(queryConditionData,page);
+        for (VehicleInfoView vehicleInfoView : vehicleInfoList) {
+			Integer accidentTotal = vehicleInfoService.countAccidentTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+			Integer illegalTotal = vehicleInfoService.countIllegalTotalByPlateNumber(vehicleInfoView.getPlateNumber());
+			vehicleInfoView.setAccidentTotal(accidentTotal!=null?accidentTotal.intValue():0);
+			vehicleInfoView.setIllegalTotal(illegalTotal!=null?illegalTotal.intValue():0);
+		}
+        model.addAttribute("vehicleInfo", vehicleInfoList);
+        model.addAttribute("page", page);
+        return model;
+    }
+    
+    /**
+     * 查询所有车辆信息
+     * @return
+     */
+    @RequestMapping(value = "/query" , method = RequestMethod.GET)
+    public Model query(){
+        Model model = new ExtendedModelMap();
+        List<VehicleInfoView> vehicleInfoList = vehicleInfoService.queryVehicle();
+        model.addAttribute("vehicleInfoList", vehicleInfoList);
+        return model;
+    }
+    
+    /**
+     * 删除车辆信息
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/deleteVehicleInfoById", method = RequestMethod.POST)
+    public Model deleteVehicleInfoById(String id) {
+	    boolean result = vehicleInfoService.deleteVehicleInfoById(id);
+	    return ModelMapFactory.buildModelMap("result", result);
+    }
+    
+    /**
+     * 添加或者修改车辆信息
+     * @param vehicleInfoJsonStr
+     * @return
+     * @throws ParseException 
+     */
+    @RequestMapping(value = "/addOrUpdateVehicleInfo", method = RequestMethod.POST)
+    public Model addOrUpdateVehicleInfo(String vehicleInfoJsonStr) throws ParseException {
+    	VehicleInfo vehicleInfo = (VehicleInfo) JsonUtils.json2Object(vehicleInfoJsonStr, VehicleInfo.class); 
+    	String registrationDate = JsonUtils.getJsonString(vehicleInfoJsonStr, "registrationDate");
+    	//将页面输入时间转化为Date格式
+    	Date registrationD = DateUtils.formatDate(registrationDate, DateUtils.YYYY_MM_DD);
+    	//将转换之后的注册时间保存到vehicleInfo对象当中
+    	vehicleInfo.setRegistrationDate(registrationD);
+    	int result = vehicleInfoService.addOrUpdateVehicleInfo(vehicleInfo);
+    	return ModelMapFactory.buildModelMap("result", result);
+    }
+    
+    /**
+     * 根据车牌号码分页查询车辆信息
+     * @param plateNumber
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoByPlateNumber" , method = RequestMethod.GET)
+    public Model queryVehicleInfoByPlateNumber(QueryConditionData queryConditionData){
+        Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        List<VehicleInfoView> vehicleInfoList = 
+        		vehicleInfoService.searchVehicleInfo(queryConditionData,page);
+        model.addAttribute("vehicleInfoList", vehicleInfoList);
+        model.addAttribute("page", page);
+        return model;
+    }
+    
+    /**
+     * 根据车辆类型查询所有的车辆信息
+     * @param plateNumber
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoByVehicleType" , method = RequestMethod.GET)
+    public Model queryVehicleInfoByVehicleType(QueryConditionData queryConditionData,String vehicleType){
+    	Model model = new ExtendedModelMap();
+    	List<VehicleInfoView> VehicleInfoViewList = 
+    			vehicleInfoService.searchVehicleInfoByVehicleType(queryConditionData, vehicleType);
+    	model.addAttribute("VehicleInfoViewList", VehicleInfoViewList);
+    	return model;
+    }
+    
+    /**
+     * 根据id查询车辆信息
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleInfoById", method = RequestMethod.GET)
+    public Model queryVehicleInfoById(String id) {
+    	Model model = new ExtendedModelMap();
+	    VehicleInfo vehicleInfo = vehicleInfoService.queryVehicleInfoById(id);
+	    model.addAttribute("vehicleInfo", vehicleInfo);
+	    return model;
+    }
+    /**
+     * 查询车辆年审预警
+     * @param queryConditionData
+     * @return
+     */
+    @RequestMapping(value = "/queryVehicleMotTest" , method = RequestMethod.GET)
+    public Model queryVehicleMotTest(QueryConditionData queryConditionData){
+    	Model model = new ExtendedModelMap();
+        Page page = new Page(queryConditionData);
+        Date date = new Date();
+        queryConditionData.setCurrentDate(date);
+        List<VehicleInfoView> vehicleOfNoMotTestList = 
+        		vehicleInfoService.queryVehicleMotTest(queryConditionData,page);
+        model.addAttribute("vehicleOfNoMotTestList", vehicleOfNoMotTestList);
+        model.addAttribute("total", page.getCount());
+        model.addAttribute("currentPage", page.getPage());
+        model.addAttribute("pages", page.getPages());
+        return model;
+    }
+    
+    /**
+     * 处置车辆年审预警
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/dealMotTest", method = RequestMethod.POST)
+    public Model dealMotTest(String id) {
+	    boolean result = vehicleInfoService.dealMotTest(id);
+	    return ModelMapFactory.buildModelMap("result", result);
+    }
+}

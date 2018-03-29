@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 报警规则Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.WarnRuleMapper">
+
+	<!-- 查询车辆当前活动时间是否在时间规则表里面 -->
+	<select id="queryTravelTimeByvehicleIdAndTime" resultType='com.gkhb.keyvehicle.model.TravelTime'>
+		SELECT * FROM kv_travel_time
+		WHERE VEHICLE_ID=#{ID,jdbcType=VARCHAR}
+		AND #{reportTimeOfDate,jdbcType=DATE}<![CDATA[>=]]>DRIVE_START_DATE
+		AND #{reportTimeOfDate,jdbcType=DATE}<![CDATA[<=]]>DRIVE_END_DATE
+		AND #{reportTimeOfTime,jdbcType=TIME}<![CDATA[>=]]>DRIVE_START_TIME
+		AND #{reportTimeOfTime,jdbcType=TIME}<![CDATA[<=]]>DRIVE_END_TIME
+		and state=1;
+	</select>
+</mapper>

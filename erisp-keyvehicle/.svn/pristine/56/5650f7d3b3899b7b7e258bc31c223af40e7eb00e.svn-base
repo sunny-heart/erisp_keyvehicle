@@ -1,0 +1,124 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.model.Auth;
+import com.gkhb.keyvehicle.model.Resource;
+import com.gkhb.keyvehicle.slave.service.AuthService;
+
+/**
+ * 权限控制器
+ * @author Administrator
+ *
+ */
+@Controller
+@RequestMapping("/authController")
+public class AuthController extends BaseController{
+	
+	@Autowired
+	private AuthService authService;
+	
+	/**
+     * 查询所有事故信息
+     * @return
+     */
+    @RequestMapping(value = "/auth.data" , method = RequestMethod.POST)
+    public @ResponseBody Model query(HttpServletRequest request){
+    	Model model = new ExtendedModelMap();
+    	Auth auth = new Auth();
+    	String depId = request.getParameter("depId");
+    	String roleId = request.getParameter("roleId");
+    	String userId = request.getParameter("userId");
+    	String groupId = request.getParameter("groupId");
+//    	Auth user = authService.queryUsernameById(userId);
+//    	String depNameById = authService.queryDepNameById(depId);
+//    	String groupNameById = authService.queryGroupNameById(groupId);
+//    	List<Resource> resourceName = authService.getResourceName(roleId);
+//    	auth.setDepName(depNameById);
+//    	auth.setGroupName(groupNameById);
+//    	auth.setResourceName(resourceName);
+//    	if(null != user && !"".equals(resourceName)){
+//    		auth.setFstrName(user.getFstrName());
+//    		auth.setFstrDesc(user.getFstrDesc());
+//    	}
+    	ArrayList<Resource> resourceName = new ArrayList<>();
+    	for(int i = 0;i<1;i++){
+    		Resource resource = new Resource();
+    		resource.setAddress("app.map");
+    		resource.setFstrImageUrl("assets/images/menu_01.png");
+    		resource.setFstrName("实时监控");
+    		resource.setFstrOpenMode("1");
+    		resourceName.add(resource);
+    	}
+    	Resource resource3 = new Resource();
+    	resource3.setAddress("app.map");
+    	resource3.setFstrImageUrl("");
+    	resource3.setFstrName("物流车");
+    	resource3.setFstrOpenMode("2");
+    	resourceName.add(resource3);
+    	Resource resource4 = new Resource();
+    	resource4.setAddress("app.map");
+    	resource4.setFstrName("新能源");
+    	resource4.setFstrOpenMode("3");
+    	resource4.setFstrImageUrl("");
+    	resourceName.add(resource4);
+    	Resource resource5 = new Resource();
+    	resource5.setAddress("app.map");
+    	resource5.setFstrName("冷链");
+    	resource5.setFstrOpenMode("3");
+    	resource5.setFstrImageUrl("");
+    	resourceName.add(resource5);
+    	Resource resource = new Resource();
+    	resource.setAddress("app.trail");
+    	resource.setFstrImageUrl("assets/images/menu_02.png");
+    	resource.setFstrName("轨迹回放");
+    	resource.setFstrOpenMode("1");
+    	resourceName.add(resource);
+    	Resource resource2 = new Resource();
+    	resource2.setAddress("app.vehicleManagement");
+    	resource2.setFstrImageUrl("assets/images/menu_03.png");
+    	resource2.setFstrName("车辆查询");
+    	resource2.setFstrOpenMode("1");
+    	resourceName.add(resource2);
+    	Resource resource6 = new Resource();
+    	resource6.setAddress("app.vehicleManagement.vehicleManage");
+    	resource6.setFstrImageUrl("");
+    	resource6.setFstrName("车辆查询");
+    	resource6.setFstrOpenMode("2");
+    	resourceName.add(resource6);
+    	Resource resource7 = new Resource();
+    	resource7.setAddress("app.warningDisposal");
+    	resource7.setFstrImageUrl("assets/images/menu_04.png");
+    	resource7.setFstrName("预警处置");
+    	resource7.setFstrOpenMode("1");
+    	resourceName.add(resource7);
+    	Resource resource8 = new Resource();
+    	resource8.setAddress("app.warningDisposal.warningMap");
+    	resource8.setFstrImageUrl("");
+    	resource8.setFstrName("预警监控");
+    	resource8.setFstrOpenMode("2");
+    	resourceName.add(resource8);
+    	Resource resource9 = new Resource();
+    	resource9.setAddress("app.warningDisposal.warningDisposal");
+    	resource9.setFstrImageUrl("");
+    	resource9.setFstrName("实时处置");
+    	resource9.setFstrOpenMode("2");
+    	resourceName.add(resource9);
+    	auth.setResourceName(resourceName);
+        model.addAttribute("result",auth);
+        return model;
+    }
+
+}

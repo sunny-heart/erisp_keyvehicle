@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 车辆历史轨迹信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.VehicleHisTrajectoryInfoMapper">
+	<!-- 根据车牌查询 -->
+	<select id="searchVehicleHisTrajectoryInfo" parameterType="java.lang.String"
+		resultType='com.gkhb.keyvehicle.model.VehicleHisTrajectoryInfo'>
+		SELECT A.PLATE_NUMBER,A.LATITUDE,A.LONGITUDE,A.REPORT_TIME,A.SPEED
+		FROM KV_REAL_TIME_DATA A
+		WHERE ID IS NOT NULL
+		<if test=" plateNumber != null and plateNumber != '' ">
+			AND A.PLATE_NUMBER LIKE CONCAT(CONCAT('%',
+			#{plateNumber}),'%')
+		</if>
+		ORDER BY A.REPORT_TIME DESC
+	</select>
+
+	<!-- 查询某段时间内某辆车的位置信息MYSQL -->
+	<!-- <select id="queryLocations" resultType='com.gkhb.keyvehicle.model.view.HisTrajectoryView' 
+		parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData"> SELECT 
+		m.*,v.VEHICLE_TYPE FROM KV_REAL_TIME_DATA m WHERE ID IS NOT NULL <if test=" 
+		queryConditionData.plateNumber != null and queryConditionData.plateNumber 
+		!= '' "> AND m.PLATE_NUMBER = #{queryConditionData.plateNumber} </if> <if 
+		test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious 
+		!= '' "> <![CDATA[ AND m.REPORT_TIME >= DATE_FORMAT(#{queryConditionData.timePrevious},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> <if test=" queryConditionData.startTime != null and 
+		queryConditionData.startTime != '' "> <![CDATA[ AND m. REPORT_TIME >= DATE_FORMAT(#{queryConditionData.startTime},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> <if test=" queryConditionData.endTime != null and queryConditionData.endTime 
+		!= '' "> <![CDATA[ AND m. REPORT_TIME <= DATE_FORMAT(#{queryConditionData.endTime},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> AND v.PLATE_NUMBER = m.PLATE_NUMBER ORDER BY m.REPORT_TIME 
+		DESC </select> -->
+
+	<!-- 查询某段时间内某辆车的位置信息ORACLE -->
+	<select id="queryLocations" resultType='com.gkhb.keyvehicle.model.view.HisTrajectoryView'
+		parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData">
+		SELECT m.*,v.VEHICLE_TYPE
+		FROM KV_REAL_TIME_DATA m
+		WHERE ID IS NOT NULL
+		<if
+			test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND m.PLATE_NUMBER = #{queryConditionData.plateNumber}
+		</if>
+		<if
+			test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious != '' ">
+			<![CDATA[ AND m.REPORT_TIME >= to_date(#{queryConditionData.timePrevious},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		AND v.PLATE_NUMBER = m.PLATE_NUMBER
+		ORDER BY m.REPORT_TIME DESC
+	</select>
+</mapper>

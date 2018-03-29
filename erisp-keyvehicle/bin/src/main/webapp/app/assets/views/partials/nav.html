@@ -1,0 +1,109 @@
+<!-- start: SEARCH FORM -->
+<ul id="leftNavUl" class="main-navigation-menu" style="background-color: #CCE1ED;">
+	<!-- 实时位置start -->
+	<li ng-class="{'active open':$state.includes('app.map')}">
+		<a ui-sref="app.map" id="mapPage">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_01.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">实时监控 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<!-- <li ui-sref-active="active"><input style="margin-left: 80px"
+				type="checkbox" name="危化品" value="危化品" checked="checked">
+				<span class="title pams_menu1"> 危化品车 </span>
+			</li> -->
+			<li ui-sref-active="active">
+				<a href="javascript:void(0)">
+					<div class="item-content">
+						<div class="item-inner">
+							<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;物流车 </span>
+						</div>
+					</div>
+				</a>
+				<ul class="sub-menu">
+					<li ui-sref-active="active">
+						<input type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 80px" name="新能源" value="新能源">
+						<span class="title vehicle_title_3"> 新能源 </span>
+					</li>
+					<li ui-sref-active="active">
+						<input type="checkbox"  ng-click="vehicleTypeClick($event)" style="margin-left: 80px" name="冷链" value="冷链">
+						<span class="title vehicle_title_3"> 冷链 </span>
+					</li>
+					<li ui-sref-active="active">
+						<input type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 80px" name="危化品" value="危化品">
+						<span class="title vehicle_title_3"> 危化品 </span>
+					</li>
+					<li ui-sref-active="active">
+						<input type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 80px" name="普通" value="普通">
+						<span class="title vehicle_title_3"> 普通 </span>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</li>
+	<!-- 实时位置end -->
+	<!-- 轨迹追踪start -->
+	<li ui-sref-active="active" ng-class="{'active open':$state.includes('app.trail')}">
+		<a ui-sref="app.trail" id="mapPage" class="showMap">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_02.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">轨迹回放 </span>
+				</div>
+			</div>
+		</a>
+	</li>
+	<!-- 轨迹追踪end -->
+	<li ng-class="{'active open':$state.includes('app.vehicleManagement')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_03.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">车辆查询 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active"><a
+				ui-sref="app.vehicleManagement.vehicleManage" class="">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;车辆查询 </span>
+			</a></li>
+		</ul>
+	</li>
+	<!-- start: 预警处置-->
+	<li ng-class="{'active open':$state.includes('app.warningDisposal')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_04.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;"> 预警处置 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active">
+				<a ui-sref="app.warningDisposal.warningDisposal" class="">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;实时处置 </span>
+				</a>
+			</li>
+			<li ui-sref-active="active">
+				<a ui-sref="app.warningDisposal.warningSet" class="active">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警设置</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 预警处置 -->
+</ul>
+<!-- end: MAIN NAVIGATION MENU -->

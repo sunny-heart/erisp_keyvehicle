@@ -1,0 +1,111 @@
+package com.gkhb.keyvehicle.controller;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import com.gkhb.keyvehicle.common.spring.BaseController;
+import com.gkhb.keyvehicle.common.utils.MapKeyComparator;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.ReportsView;
+import com.gkhb.keyvehicle.service.ReportsService;
+
+/**
+ * 报表统计
+ */
+@Controller
+@RequestMapping(("/reports"))
+public class ReportsController extends BaseController {
+    
+	@Autowired
+    ReportsService reportsService;
+
+    /**
+     * 根据车辆类型统计报表 
+     * @return Model 返回类型
+     */
+    @RequestMapping(value = "/countByTypes", method = RequestMethod.GET)
+    public Model countByTypes(QueryConditionData queryConditionData) {
+    	Model model = new ExtendedModelMap();
+    	if(queryConditionData.getStartTime()!=null){
+			 String startTime = queryConditionData.getStartTime().split("-")[1];
+			 String currentYear = queryConditionData.getStartTime().split("-")[0];
+			 queryConditionData.setStartTime(startTime);
+			 queryConditionData.setCurrentYear(currentYear);
+		 }
+		 if(queryConditionData.getEndTime()!=null){
+			 String endTime = queryConditionData.getEndTime().split("-")[1];
+			 queryConditionData.setEndTime(endTime);;
+		 }
+    	List<ReportsView> listByTypes = reportsService.countByTypes(queryConditionData);
+    	Map<String,List<ReportsView>> mapByTypes =new TreeMap<String,List<ReportsView>>();
+    	
+        for(ReportsView rv : listByTypes){  
+        	if(mapByTypes.containsKey(rv.getCountTime())){
+            	mapByTypes.get(rv.getCountTime()).add(rv);  
+            }else{
+                List<ReportsView> tmpList = new ArrayList<ReportsView>();  
+                tmpList.add(rv);  
+                mapByTypes.put(rv.getCountTime(), tmpList);
+            }
+        }  
+        Map<String,List<ReportsView>> resultMap = this.sortMapByKey(mapByTypes); 
+    	model.addAttribute("listByTypes", resultMap);
+        return model;
+    }
+    
+    /**
+     * 根据主管部门统计报表 
+     * @return Model 返回类型
+     */
+    @RequestMapping(value = "/countByDepartments", method = RequestMethod.GET)
+    public Model countByDepartments(QueryConditionData queryConditionData) {
+    	Model model = new ExtendedModelMap();
+    	if(queryConditionData.getStartTime()!=null){
+			 String startTime = queryConditionData.getStartTime().split("-")[1];
+			 String currentYear = queryConditionData.getStartTime().split("-")[0];
+			 queryConditionData.setStartTime(startTime);
+			 queryConditionData.setCurrentYear(currentYear);
+		 }
+		 if(queryConditionData.getEndTime()!=null){
+			 String endTime = queryConditionData.getEndTime().split("-")[1];
+			 queryConditionData.setEndTime(endTime);
+		 }
+    	List<ReportsView> listByDepartments = reportsService.countByDepartments(queryConditionData);
+    	Map<String,List<ReportsView>> mapByDepartments =new HashMap<String,List<ReportsView>>();
+    	
+        for(ReportsView rv : listByDepartments){  
+        	if(mapByDepartments.containsKey(rv.getCountTime())){
+            	mapByDepartments.get(rv.getCountTime()).add(rv);  
+            }else{
+                List<ReportsView> tmpList = new ArrayList<ReportsView>();  
+                tmpList.add(rv);  
+                mapByDepartments.put(rv.getCountTime(), tmpList);  
+            }
+        }  
+        Map<String,List<ReportsView>> resultMap = this.sortMapByKey(mapByDepartments); 
+    	model.addAttribute("listByDepartments", resultMap);
+        return model;
+    }
+    
+    //map排序--后面改到util里
+    public Map<String, List<ReportsView>> sortMapByKey(Map<String, List<ReportsView>> map) {
+        if (map == null || map.isEmpty()) {
+            return null;
+        }
+        Map<String, List<ReportsView>> sortMap = new TreeMap<String, List<ReportsView>>(
+                new MapKeyComparator());
+        sortMap.putAll(map);
+        return sortMap;
+    }
+
+}

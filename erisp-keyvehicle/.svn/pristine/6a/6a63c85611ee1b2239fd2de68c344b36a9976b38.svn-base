@@ -1,0 +1,32 @@
+package com.gkhb.keyvehicle.service;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import com.gkhb.keyvehicle.mapper.WarnRuleMapper;
+import com.gkhb.keyvehicle.model.RealTimeData;
+import com.gkhb.keyvehicle.model.TravelTime;
+
+@Service
+public class WarnRuleServiceImpl implements WarnRuleService {
+	@Autowired
+	private WarnRuleMapper warnRuleMapper;
+
+	@Override
+	public TravelTime TimeRuleWarn(RealTimeData data) {
+
+		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
+		Date reportTime = data.getReportTime();
+		String reportTimeOfDate = format1.format(reportTime);
+		SimpleDateFormat format2 = new SimpleDateFormat("HH-mm-ss");
+		String reportTimeOfTime = format2.format(reportTime);
+		String vehicleId = data.getId();
+		TravelTime result = warnRuleMapper.queryTravelTimeByvehicleIdAndTime(vehicleId, reportTimeOfTime,
+				reportTimeOfDate);
+		return result;
+	}
+
+}

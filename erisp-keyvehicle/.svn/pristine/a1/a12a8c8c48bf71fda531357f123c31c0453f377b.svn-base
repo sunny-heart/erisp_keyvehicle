@@ -1,0 +1,381 @@
+<!-- start: SEARCH FORM -->
+<ul id="leftNavUl" class="main-navigation-menu" style="background-color: #CCE1ED;">
+		<!-- <li ng-repeat="item in resource" id="monitor" ng-class="{'active open':$state.includes('{{item.address}}')}">
+			<a ng-if="'app.trail'==item.address" ui-sref="{{item.address}}">
+				<div class="item-content">
+					<div class="item-media">
+						<img alt="" src="{{item.fstrImageUrl}}">
+					</div>
+					<div class="item-inner">
+						<span class="title vehicle_title_1" style="margin-left: -8px;">{{item.fstrName}}</span>
+					</div>
+				</div>
+			</a>
+			<a href="javascript:void(0)" ng-if="'app.trail' != item.address && '1' == item.fstrOpenMode">
+				<div class="item-content">
+					<div class="item-media">
+						<img alt="" src="{{item.fstrImageUrl}}">
+					</div>
+					<div class="item-inner">
+						<span class="title vehicle_title_1" style="margin-left: -8px;">{{item.fstrName}}</span>
+					</div>
+				</div>
+			</a>
+			<ul ng-if="'app.map' == item.address && '1' != item.fstrOpenMode" class="sub-menu" id="monitor_sub">
+				<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+					<a ng-if="'2' == item.fstrOpenMode" ui-sref="app.map" style="height: 30px;line-height: 0px;">
+						<div class="item-content">
+							<div class="item-inner" ng-if="'2' == item.fstrOpenMode">
+								<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;{{item.fstrName}}</span>
+							</div>
+						</div>
+					</a>
+					<ul class="sub-menu">
+						<li ng-repeat="item in resource" ng-if="'3' == item.fstrOpenMode" ui-sref-active="active" style="height: 30px;line-height: 30px;">
+							<label style="cursor: pointer;"><input type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 47px" name="{{item.fstrName}}" value="{{item.fstrName}}">
+							<span class="title vehicle_title_3"> {{item.fstrName}} </span></label>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<ul ng-if="'app.map' != item.address && '2' == item.fstrOpenMode" class="sub-menu">
+				<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+					<a ui-sref="{{item.address}}" style="height: 30px;line-height: 20px;">
+						<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;{{item.fstrName}} </span>
+					</a>
+				</li>
+			</ul>
+			
+		</li> -->
+		
+		<!-- 实时位置start -->
+	<li id="monitor" ng-class="{'active open':$state.includes('app.map')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_01.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">实时监控 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu" id="monitor_sub">
+			<!-- <li ui-sref-active="active"><input style="margin-left: 80px"
+				type="checkbox" name="危化品" value="危化品" checked="checked">
+				<span class="title pams_menu1"> 危化品车 </span>
+			</li> -->
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.map.cargoMap" style="height: 30px;line-height: 0px;">
+					<div class="item-content">
+						<div class="item-inner">
+							<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;物流车 </span>
+						</div>
+					</div>
+				</a>
+				<ul class="sub-menu">
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input class="navCheckbox" type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 47px" name="新能源" value="新能源">
+						<span class="title vehicle_title_3"> 新能源 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input class="navCheckbox" type="checkbox"  ng-click="vehicleTypeClick($event)" style="margin-left: 47px" name="冷链" value="冷链">
+						<span class="title vehicle_title_3"> 冷链 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input class="navCheckbox" type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 47px" name="危化品" value="危化品">
+						<span class="title vehicle_title_3"> 危化品 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input class="navCheckbox" type="checkbox" ng-click="vehicleTypeClick($event)" style="margin-left: 47px" name="普通" value="普通">
+						<span class="title vehicle_title_3"> 普通 </span></label>
+					</li>
+				</ul>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.map.busMap" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;公交车</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.map.taxiMap" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;出租车</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- 实时位置end -->
+	<!-- 轨迹追踪start -->
+	<li ng-class="{'active open':$state.includes('app.trail')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_02.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">轨迹回放 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.trail.playback" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;轨迹回放 </span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- 轨迹追踪end -->
+	<li ng-class="{'active open':$state.includes('app.vehicleManagement')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_03.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">车辆查询 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.vehicleManagement.vehicleManage" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;车辆查询 </span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- start: 预警处置 -->
+	<li ng-class="{'active open':$state.includes('app.warningDisposal')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_04.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;"> 预警处置 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.warningMap" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警监控 </span>
+				</a>
+				<!-- <ul class="sub-menu">
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input type="checkbox" ng-click="warningVehicleTypeClick($event)" style="margin-left: 47px" name="新能源" value="新能源">
+						<span class="title vehicle_title_3"> 新能源 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input type="checkbox"  ng-click="warningVehicleTypeClick($event)" style="margin-left: 47px" name="冷链" value="冷链">
+						<span class="title vehicle_title_3"> 冷链 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input type="checkbox" ng-click="warningVehicleTypeClick($event)" style="margin-left: 47px" name="危化品" value="危化品">
+						<span class="title vehicle_title_3"> 危化品 </span></label>
+					</li>
+					<li ui-sref-active="active" style="height: 30px;line-height: 30px;">
+						<label style="cursor: pointer;"><input type="checkbox" ng-click="warningVehicleTypeClick($event)" style="margin-left: 47px" name="普通" value="普通">
+						<span class="title vehicle_title_3"> 普通 </span></label>
+					</li>
+				</ul> -->
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.focusMap" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;聚集监控 </span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.warningDisposal" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;实时处置</span>
+				</a>
+			</li>
+			<!-- <li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.warningSet" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警设置</span>
+				</a>
+			</li> -->
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.warningQuery" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警查询</span>
+				</a>
+			</li>
+			<!-- <li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.warningSign" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警签收</span>
+				</a>
+			</li> -->
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningDisposal.disposalEntry" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;处置录入</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 预警处置 -->
+	
+	<!-- start: 预警规则 -->
+	<li ng-class="{'active open':$state.includes('app.warningRule')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_04.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;"> 预警规则 </span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningRule.ruleQuery" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;预警规则查询</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningRule.ruleTimeAreaAdd" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;时间区域录入</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningRule.ruleSpeedAdd" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;速度规则录入</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningRule.ruleTiredAdd" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;疲劳规则录入</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningRule.ruleBusFocusAdd" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;聚集规则录入</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 预警规则 -->
+	
+	<!-- start: 处置抄告 -->
+	<li ng-class="{'active open':$state.includes('app.warningCopy')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_04.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">处置抄告</span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.warningCopy.warningCopy" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;处置抄告</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 处置抄告 -->
+	<!-- start: 统计报表 -->
+	<li ng-class="{'active open':$state.includes('app.reports')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_05.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">统计报表</span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.reports.countByTypes" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;车辆类型预警统计</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.reports.countByDepartments" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;主管部门预警统计</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.reports.countBySuboffices" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;分局预警统计</span>
+				</a>
+			</li>
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.reports.countByCompanies" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;公司预警统计</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 统计报表 -->
+	<!-- start: 事故查询 -->
+	<li ng-class="{'active open':$state.includes('app.accidentManagement')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_03.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">事故查询</span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.accidentManage.accidentManage" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;事故查询</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 事故查询 -->
+	<!-- start: 违法查询 -->
+	<li ng-class="{'active open':$state.includes('app.illegalManagement')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_03.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">违法查询</span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.illegalManage.illegalManage" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;违法查询</span>
+				</a>
+			</li>
+		</ul>
+	</li>
+	<!-- end: 违法查询 -->
+	<!-- start: 系统设置 -->
+	<!-- <li ng-class="{'active open':$state.includes('app.system')}">
+		<a href="javascript:void(0)">
+			<div class="item-content">
+				<div class="item-media">
+					<img alt="" src="assets/images/menu_03.png">
+				</div>
+				<div class="item-inner">
+					<span class="title vehicle_title_1" style="margin-left: -8px;">系统设置</span>
+				</div>
+			</div>
+		</a>
+		<ul class="sub-menu">
+			<li ui-sref-active="active" style="width: 97%;margin-left: 3px;">
+				<a ui-sref="app.systemset.updatePhotos" style="height: 30px;line-height: 20px;">
+					<span class="title vehicle_title_2" style="margin-left: -20px;color: #000000">●&nbsp;&nbsp;车辆图片更新</span>
+				</a>
+			</li>
+		</ul>
+	</li> -->
+	<!-- end: 系统设置 -->
+</ul>  
+<!-- end: MAIN NAVIGATION MENU -->

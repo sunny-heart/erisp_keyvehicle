@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.BayonetDataMapper">
+	<!-- 添加代码信息 -->
+	<insert id="addBayonetData" parameterType="com.gkhb.keyvehicle.model.BayonetData">
+		INSERT INTO
+		kv_bayonet_data(
+		ID,
+		EQUIPMENT_NAME,
+		EQUIPMENT_LOCATION,
+		PLATE_NUMBER,
+		FETCH_TIME,
+		PICTURE
+		)
+		VALUES
+		(
+		#{id, jdbcType=VARCHAR},
+		#{equipmentName,
+		jdbcType=VARCHAR},
+		#{equipmentLocation,jdbcType=VARCHAR},
+		#{plateNumber, jdbcType=VARCHAR},
+		#{fetchTime, jdbcType=DATE},
+		#{picture, jdbcType=VARCHAR}
+		)
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryBayonetData" resultType='com.gkhb.keyvehicle.model.BayonetData'>
+		select * from
+		kv_bayonet_data
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateBayonetData" parameterType="com.gkhb.keyvehicle.model.BayonetData">
+		UPDATE
+		KV_BAYONET_DATA SET
+		EQUIPMENT_NAME= #{equipmentNam},
+		EQUIPMENT_LOCATION=#{equipmentLocation},
+		PLATE_NUMBER=#{plateNumber},
+		FETCH_TIME=#{fetchTime},
+		PICTURE=#{picture}
+		WHERE ID = #{id}
+	</update>
+
+
+
+</mapper>

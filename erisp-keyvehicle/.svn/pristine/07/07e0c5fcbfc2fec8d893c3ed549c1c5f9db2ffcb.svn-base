@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.gkhb.keyvehicle.mapper.TravelRouteMapper">
+	<insert id="addRoadTravelRoute" parameterType="com.gkhb.keyvehicle.model.TravelRoute">
+		INSERT INTO
+		kv_travel_route(
+		ID,
+		VEHICLE_TYPE,
+		VEHICLE_ID,
+		VEHICLE_ROUTE,
+		STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{vehicleType},
+		#{vehicleId},
+		#{vehicleRoute},
+		#{state}
+		);
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryTravelRoute" resultType='com.gkhb.keyvehicle.model.TravelRoute'>
+		SELECT * FROM
+		KV_TRAVEL_ROUTE
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateTravelRoute" parameterType="com.gkhb.keyvehicle.model.TravelRoute">
+		UPDATE
+		kv_travel_route SET
+		VEHICLE_TYPE=#{vehicleType},
+		VEHICLE_ID=#{vehicleId},
+		VEHICLE_ROUTE=#{vehicleRoute},
+		STATE=#{state}
+		WHERE
+		ID =#{id}
+	</update>
+	
+	<!-- 根据车辆id查询行驶路线 -->
+	<select id="queryTravelRouteByVehicleId" resultType='com.gkhb.keyvehicle.model.TravelRoute'>
+		SELECT * FROM KV_TRAVEL_ROUTE WHERE VEHICLE_ID = #{vehicleId} and STATE = 0 and ROWNUM = 1
+	</select>
+	
+	<!-- 根据车辆类型查询行驶路线 -->
+	<select id="queryTravelRouteByVehicleType" resultType='com.gkhb.keyvehicle.model.TravelRoute'>
+		SELECT * FROM KV_TRAVEL_ROUTE WHERE VEHICLE_TYPE = #{vehicleType} and STATE = 0 and ROWNUM = 1
+	</select>
+    
+    <!-- 预警查询-违规路线 -->
+    <select id="queryWarningInfo" resultType="com.gkhb.keyvehicle.model.view.WarningSetView">
+        SELECT 
+            route.ID AS id,
+            '违规路线' AS warningType,
+            route.VEHICLE_TYPE AS vehicleType,
+            vehicle.PLATE_NUMBER AS plateNumber,
+            CONCAT(CONCAT('设置违规路线为 ',' '),' ') AS remark
+            
+        FROM KV_TRAVEL_ROUTE route
+        LEFT JOIN KV_VEHICLE_INFO vehicle
+        ON route.VEHICLE_ID = vehicle.ID
+        <where>
+            <if test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+                AND route.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+            </if>
+            <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+                AND vehicle.PLATE_NUMBER like CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+            </if>
+            AND route.STATE = 0
+        </where>
+    </select>
+    
+    <!-- 删除预警信息 -->
+    <delete id="deleteWarningInfo" parameterType="java.lang.String">
+        DELETE FROM KV_TRAVEL_ROUTE WHERE ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

@@ -1,0 +1,101 @@
+/**
+ * 车辆详情
+ */
+app.controller('warningDetailsController', ['$scope','$filter','$log','$modal', '$modalInstance','SweetAlert', 'params','warningQueryService','$timeout',
+  function($scope,$filter,$log,$modal,$modalInstance,SweetAlert,params,warningQueryService,$timeout) {
+	
+//    $scope.warningDetailsModel = {};
+//	$scope.disposalProcess['disposalMethods'] = "处置";
+	$scope.disposalMethods = "处置";
+    $scope.hyDepartment = "物流云平台";
+    $scope.disposalProcess = {};
+    $scope.warningId = params.warningDetails.id;
+    
+  //取消
+    $scope.cancel = function() {
+        $modalInstance.dismiss('cancel');
+    };
+    
+    //加载数据
+//    $scope.warningDetailsModel = params.warningDetails;
+	
+    //根据预警Id查询预警处置信息，预警信息，车辆信息
+    $scope.queryOneWarningDisposalInfo = function () {
+    	warningQueryService.queryOneWarningDisposalInfo($scope.warningId,function (data) {
+			 if (data.state == 200) {
+				$scope.warningDisposalView = data.messageBody.queryOneWarningDisposalInfo;
+				console.log($scope.warningDisposalView);
+				//处置流程信息
+		    	$scope.disposalProcess = $scope.warningDisposalView.disposalProcess;
+		    	var result = $scope.disposalProcess.jgDisposalInstructions;
+		    	if(null != result){
+		    		var split=result.split(",");
+		    		$scope.disposalMethods = split[0];
+		    		if(split[0] == "处置"){
+		    			var split2=split[1].split("：");
+		    			$scope.disposalProcess['department'] = split2[1];
+		    		}else if(split[0] == "忽略"){
+		    			var split2=split[1].split("：");
+		    			$scope.disposalProcess['reason'] = split2[1];
+		    		}
+		    	}
+		    	//预警信息
+		    	$scope.earlyWarningInfo = $scope.warningDisposalView.earlyWarningInfo;
+		    	//预警事件、预警说明格式化
+		    	switch($scope.earlyWarningInfo.warningType)
+		    	{
+			    	case '1':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="违规路线行驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆不按照规定路线行驶！";
+			    		break;
+			    	case '2':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="违规时间行驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆不按照规定时间行驶！";
+			      	  	break;
+			    	case '3':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="超速行驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆超速行驶，限速为100公里/小时，当前时速105公里/小时！";
+			    		break;
+			    	case '4':
+			    		$scope.earlyWarningInfo['warningTypeExplain']="疲劳驾驶";
+			    		$scope.earlyWarningInfo['warningExplain'] = "车辆连续行驶4小时以上未进行20分钟休息！";
+			    		break;
+		    	}
+		    	//车辆信息
+		    	$scope.vehicleInfo = $scope.warningDisposalView.vehicleInfo;
+		    	$scope.vehicleInfo['vehicleKind'] = "物流车";
+		    	
+		    	//处置细则
+		    	var date = new Date().setTime($scope.earlyWarningInfo.warningStartTime.time);
+		    	var dateAsString = $filter('date')(date, "yyyy年MM月dd日 HH时mm分ss秒"); 
+		    	$scope.disposalRules = dateAsString + $scope.vehicleInfo.vehicleType + $scope.vehicleInfo.plateNumber + $scope.earlyWarningInfo.warningExplain;
+			 }
+		 }, function (err) {
+		 })
+    };
+    
+    //初始化
+    $scope.queryOneWarningDisposalInfo();
+    
+}]);
+
+//预警类型格式化
+app.filter('reverse', function() { //可以注入依赖
+    return function(text) {
+    	switch(text)
+    	{
+	    	case '1':
+	    		return "违规路线行驶";
+	    		break;
+	    	case '2':
+	    		return "违规时间行驶";
+	      	  	break;
+	    	case '3':
+	    		return "超速行驶";
+	    		break;
+	    	case '4':
+	    		return "疲劳驾驶";
+	    		break;
+    	}
+    }
+});

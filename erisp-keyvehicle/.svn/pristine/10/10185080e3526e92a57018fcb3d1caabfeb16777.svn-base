@@ -1,0 +1,80 @@
+package com.gkhb.keyvehicle.mapper;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import com.gkhb.keyvehicle.common.model.Page;
+import com.gkhb.keyvehicle.model.EarlyWarningInfo;
+import com.gkhb.keyvehicle.model.param.QueryConditionData;
+import com.gkhb.keyvehicle.model.view.EarlyWarningInfoView;
+
+/**
+ * 预警信息表mapper
+ * 
+ * @author weidongping
+ * @createTime 2017年9月7日 上午10:27:02
+ */
+@Repository
+public interface EarlyWarningInfoMapper {
+    /**
+     * 添加预警信息
+     * 
+     * @param disposalprocess
+     */
+    public void addEarlyWarningInfo(EarlyWarningInfo earlyWarningInfo);
+
+    /**
+     * 查询所有预警信息
+     * 
+     * @return
+     */
+    public List<EarlyWarningInfo> queryEarlyWarningInfo();
+
+    /**
+     * 修改预警信息
+     * 
+     * @param earlywarninginfo }
+     * @return
+     */
+    public int updateEarlyWarningInfo(EarlyWarningInfo earlyWarningInfo);
+
+    /**
+     * 根据车辆id、预警类型查询预警信息
+     * 
+     * @param id
+     * @param warningType
+     * @return
+     */
+    public EarlyWarningInfo queryEarlyWarningInfoByVehicleIdAndWarningType(@Param("vehicleId") String vehicleId, @Param("warningType") String warningType);
+
+    /**
+     * 根据预警id查询预警信息
+     * 
+     * @param warningId
+     * @return EarlyWarningInfo
+     */
+    public EarlyWarningInfo queryEarlyWarningInfoById(@Param("id") String id);
+    
+    /**
+     * 查车辆数及预警数
+     * @return
+     */
+    public EarlyWarningInfoView queryEarlyWarningInfoCounts(@Param("queryConditionData")QueryConditionData queryConditionData);
+    
+    /**
+     * 根据车辆id查询最新一条预警信息
+     * 
+     * @param id
+     * @return
+     */
+    public EarlyWarningInfo queryEarlyWarningInfoByVehicleId(@Param("vehicleId") String vehicleId);
+    
+    /**
+	 * 预警查询
+	 * @param queryConditionData
+	 * @return
+	 */
+	public List<EarlyWarningInfoView> queryEarlyWaringInfoList(@Param("queryConditionData")QueryConditionData queryConditionData,Page page);
+}

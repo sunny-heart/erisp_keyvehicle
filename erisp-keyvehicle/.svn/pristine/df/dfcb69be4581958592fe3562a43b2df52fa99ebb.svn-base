@@ -1,0 +1,51 @@
+package com.gkhb.keyvehicle.model;
+
+/**
+ * 车辆在线状态实体类
+ * @author eddy
+ *
+ */
+public class VehicleOnlineState {
+	
+	public enum VehicleState{
+		/**
+		 * 离线
+		 */
+		OFFLINE,
+		/**
+		 * 在线
+		 */
+		ONLINE
+	}
+	
+	/**
+	 * 主键id
+	 */
+	private String id;	
+	/**
+	 * 车辆ID
+	 */
+	private String vehicleId;
+	/**
+	 * 车辆在线状态
+	 */
+	private VehicleState vehicleState;
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getVehicleId() {
+		return vehicleId;
+	}
+	public void setVehicleId(String vehicleId) {
+		this.vehicleId = vehicleId;
+	}
+	public VehicleState getVehicleState() {
+		return vehicleState;
+	}
+	public void setVehicleState(VehicleState vehicleState) {
+		this.vehicleState = vehicleState;
+	}
+}

@@ -1,0 +1,137 @@
+package com.gkhb.keyvehicle.model;
+
+import java.util.Date;
+
+
+/**
+ *	预警处置流程
+ *	@author weidongping
+ *	@createTime 2017年9月7日 上午10:27:02
+ */
+public class DisposalProcess {
+
+	/**
+	 * 主键id
+	 */
+	private String id;
+	/**
+	 * 预警信息id	
+	 */
+	private String warningId;
+	/**
+	 * 交管局处理部门
+	 */
+	private String jgDepartment;
+	/**
+	 * 交管局处置人id
+	 */
+	private String jgUserId;
+	/**
+	 * 交管局处置时间
+	 */
+	private Date  jgDisposalTime;
+	/**
+	 * 交管局处置情况说明
+	 */
+	private String jgDisposalInstructions;
+	/**
+	 * 抄报状态
+	 */
+	private int jgCcState;
+	/**
+	 * 行业主管处理部门
+	 */
+	private String hyDepartment;
+	/**
+	 * 行业主管处置人id	
+	 */
+	private String  hyUserId;
+	/**
+	 * 行业主管处置时间
+	 */
+	private Date  timesTamp;
+	/**
+	 * 行业主管处置情况说明
+	 */
+	private String hyDisposalInstructions;
+	/**
+	 * 状态
+	 */
+	private int state;
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getWarningId() {
+		return warningId;
+	}
+	public void setWarningId(String warningId) {
+		this.warningId = warningId;
+	}
+	public String getJgDepartment() {
+		return jgDepartment;
+	}
+	public void setJgDepartment(String jgDepartment) {
+		this.jgDepartment = jgDepartment;
+	}
+	public String getJgUserId() {
+		return jgUserId;
+	}
+	public void setJgUserId(String jgUserId) {
+		this.jgUserId = jgUserId;
+	}
+	public Date getJgDisposalTime() {
+		return jgDisposalTime;
+	}
+	public void setJgDisposalTime(Date jgDisposalTime) {
+		this.jgDisposalTime = jgDisposalTime;
+	}
+	public String getJgDisposalInstructions() {
+		return jgDisposalInstructions;
+	}
+	public void setJgDisposalInstructions(String jgDisposalInstructions) {
+		this.jgDisposalInstructions = jgDisposalInstructions;
+	}
+	public String getHyDepartment() {
+		return hyDepartment;
+	}
+	public void setHyDepartment(String hyDepartment) {
+		this.hyDepartment = hyDepartment;
+	}
+	public String getHyUserId() {
+		return hyUserId;
+	}
+	public void setHyUserId(String hyUserId) {
+		this.hyUserId = hyUserId;
+	}
+	public Date getTimesTamp() {
+		return timesTamp;
+	}
+	public void setTimesTamp(Date timesTamp) {
+		this.timesTamp = timesTamp;
+	}
+	public String getHyDisposalInstructions() {
+		return hyDisposalInstructions;
+	}
+	public void setHyDisposalInstructions(String hyDisposalInstructions) {
+		this.hyDisposalInstructions = hyDisposalInstructions;
+	}
+	public int getState() {
+		return state;
+	}
+	public void setState(int state) {
+		this.state = state;
+	}
+	public int getJgCcState() {
+		return jgCcState;
+	}
+	public void setJgCcState(int jgCcState) {
+		this.jgCcState = jgCcState;
+	}
+	
+	
+	
+
+}

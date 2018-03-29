@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 驾驶时间Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.FatigueDrivingMapper">
+
+	<!-- 预警查询-驾驶时间 -->
+	<select id="queryWarningInfo" resultType="com.gkhb.keyvehicle.model.view.WarningSetView">
+		SELECT
+		fatigue.ID AS id,
+		'疲劳驾驶' AS warningType,
+		fatigue.VEHICLE_TYPE AS vehicleType,
+		vehicle.PLATE_NUMBER AS plateNumber,
+		CONCAT(CONCAT('设置疲劳驾驶时间为 ',fatigue.DRIVING_TIME),' 小时') AS remark
+
+		FROM KV_FATIGUE_DRIVING fatigue
+		LEFT JOIN KV_VEHICLE_INFO vehicle
+		ON fatigue.VEHICLE_ID = vehicle.ID
+		<where>
+			<if
+				test=" queryConditionData.vehicleType != null and queryConditionData.vehicleType !='' ">
+				AND fatigue.VEHICLE_TYPE = #{queryConditionData.vehicleType}
+			</if>
+			<if
+				test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber !='' ">
+				AND vehicle.PLATE_NUMBER like
+				CONCAT(CONCAT('%',#{queryConditionData.plateNumber}),'%')
+			</if>
+			AND fatigue.STATE = 0
+		</where>
+	</select>
+
+	<!-- 根据车辆id查询疲劳驾驶时间 -->
+	<select id="queryFatigueDrivingByVehicleId" resultType='com.gkhb.keyvehicle.model.FatigueDriving'>
+		SELECT *
+		FROM KV_FATIGUE_DRIVING WHERE VEHICLE_ID = #{vehicleId} and STATE = 0
+		and ROWNUM = 1
+	</select>
+
+	<!-- 根据车辆类型查询疲劳驾驶时间 -->
+	<select id="queryFatigueDrivingByVehicleType" resultType='com.gkhb.keyvehicle.model.FatigueDriving'>
+		SELECT
+		* FROM KV_FATIGUE_DRIVING WHERE VEHICLE_TYPE = #{vehicleType} and
+		STATE = 0 and ROWNUM = 1
+	</select>
+
+	<!-- 删除预警信息 -->
+	<delete id="deleteWarningInfo" parameterType="java.lang.String">
+		DELETE FROM KV_FATIGUE_DRIVING WHERE ID = #{id,jdbcType=VARCHAR}
+	</delete>
+
+</mapper>

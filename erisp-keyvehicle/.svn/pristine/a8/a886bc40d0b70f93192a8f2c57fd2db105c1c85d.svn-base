@@ -1,0 +1,121 @@
+<div class="container-fluid container-fullw bg-white animated zoomInDown"
+	style="padding-top: 0;padding-left: 50px; padding-right: 50px;" id="inn">
+	<div ng-controller="vehicleManageController">
+		<div class="title_text">车辆管理</div>
+		<div class="title_line"></div>
+		<div class="row-fluid">
+			<div class="col-md-4" style="padding-left:0px;">
+				<div class="form-group">
+					<label class="font_black_famil">车牌号码 :</label>
+					<input id="plateNumber" type="text" class="pams_input font_black_famil" style="width: 70%;" ng-model="queryConditionData.plateNumber">
+					<!-- <select class="js-data-example-ajax" id="assetsNumber" style="width:70%;" >
+						<option value="" selected="selected">全部</option>
+					</select> -->
+				</div>
+			</div>
+		</div>
+		<div class="row-fluid" style="clear:left">
+			<div class="col-md-4" style="margin-bottom: 15px;padding-left:0px;">
+				<div class="col-sm-8" style="padding-left: 0px;">
+					<button type="button" ng-click="query()" class="btn pams_query">
+						<span>查询<!--  <i class="fa fa-search"></i> --></span>
+					</button>
+					<button type="button" ng-click="reset()" class="btn pams_reset" style="margin-left: 15px;">
+						<span>重置<!-- <i class="fa fa-repeat"></i> --></span>
+					</button>
+				</div>
+				<!-- <div class="col-sm-4 button_local_right">
+					
+				</div> -->
+				<!-- <div class="col-sm-4 button_local_right">
+					<button type="button" ng-click="addOrUpdateVehicleInfo('add')" class="btn pams_add">
+						<span>新增<i class="fa fa-plus-circle"></i></span>
+					</button>
+				</div> -->
+			</div>
+		</div>
+		<div class="row-fluid">
+			<table class="table table-hover table-bordered table-responsive pams_table">
+				<thead>
+					<tr>
+						<!-- <th class="center table-th"></th> -->
+						<th class="center table-th">车牌号码</th>
+						<th class="center table-th">申报企业</th>
+						<th class="center table-th">所属企业</th>
+						<th class="center table-th">车辆类型</th>
+						<th class="center table-th">核定载重</th>
+						<th class="center table-th">注册登记时间</th>
+						<th class="center table-th">企业联系人</th>
+						<th class="center table-th">联系电话</th>
+						<th class="center table-th">监管部门</th>
+						<th class="center table-th">车辆类别</th>
+						<th class="center table-th">年审状态</th>
+						<th class="center table-th">年度违法次数</th>
+						<th class="center table-th">年度事故次数</th>
+			            <!-- <th class="center table-th">操作</th> -->
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="data in vehicleInfo">
+						<td class="center table-td">{{data.plateNumber}}</td>
+						<td class="center table-td">{{data.applyCompany}}</td>
+						<td class="center table-td">{{data.ascriptionCompany}}</td>
+						<td class="center table-td">{{data.vehicleType}}</td>
+						<td class="center table-td">{{data.authorizedLoad}}</td>
+						<td class="center table-td">{{data.registrationDate.time | date:'yyyy-MM-dd'}}</td>
+						<td class="center table-td">{{data.contacts}}</td>
+						<td class="center table-td">{{data.phoneNumber}}</td>
+						<td class="center table-td">{{data.competentAuthority}}</td>
+						<td class="center table-td">{{data.plateType}}</td>
+						<td class="center table-td">{{data.motTestState}}</td>
+						<td class="center table-td">{{data.illegalTotal}}</td>
+						<td class="center table-td">{{data.accidentTotal}}</td>
+						<!-- <td class="center table-td"> 
+							<a class="btn table-btn btn-transparent btn-xs" tooltip-placement="top" tooltip="修改" ng-click="addOrUpdateVehicleInfo('update',data)">
+	                        	<i class="fa  fa-edit" style="color: #f4cc8d1;"></i>
+	                        </a>
+	                        <a class="btn table-btn btn-transparent btn-xs" tooltip-placement="top" tooltip="删除" ng-click="deleteVehicleInfoById(data)">
+	                        	<i class="fa fa-trash" style="color: #f97d22;"></i>
+	                        </a>
+                        </td> -->
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		 <div style="text-align:right;margin-bottom: 12px;">
+		 	<div class="center table-pagination" ng-show="totalItems>0" style="display:inline-block;padding-right:10px;">查询结果：共计<span style="font-weight:bold">{{totalItems}}</span>条 &nbsp;当前页<span style="font-weight:bold">{{currentPage}}</span>/共<span style="font-weight:bold">{{pages}}</span>页</div>
+		   <input id="first"  class="" type="button" value="首页" style="height:28px;" ng-click="query()">
+		   <input id="previous" class="" type="button" value="上一页" style="height:28px;" ng-click="previousPage()">
+		   <input id="next"  class="" type="button" value="下一页" style="height:28px;" ng-click="nextPage()">
+		   <input id="last" class="" type="button" value="末页" style="height:28px;" ng-click="lastPage()">
+		   <input id="pageNumber" class="" type="text"  style="height:28px;width: 70px;" ng-model="anyPage">
+		   <input id="go" class="" type="button" value="GO" style="height:28px;" ng-click="go()">
+		</div>
+		<!-- <div class="row-fluid text-center">
+			<div class="col-md-6">
+				<pagination total-items="totalItems" ng-model="currentPage" max-size="9" items-per-page="pageSize" class="pagination-md"
+					ng-change="pageChanged()" boundary-links="true" rotate="false" previous-text="&lsaquo;" next-text="&rsaquo;" first-text="&laquo;" last-text="&raquo;" num-pages="numPages"> 
+				</pagination>
+			</div>
+			<div class="col-md-2 col-md-offset-1" style="padding-top: 15px;">
+				<div class="input-group">
+					<input type="text" class="form-control pams_input_addOrUpdate" ng-model="currentPage" />
+					<span class="input-group-btn">
+						<button type="button" class="btn" ng-click="pageChanged()" style="height:34px;background-color: #f2f2f2;border-color: #c4c4c4;color: #000000;">跳至</button>
+					</span>
+				</div>
+			</div>
+			<div class="col-md-3" style="padding-top: 15px;">
+				<div class="input-group">
+					<span class="input-group-addon" style="background-color: #f2f2f2;border-color: #c4c4c4;color: #000000;">显示条数：</span>
+					<select class="form-control" ng-model="pageSize" ng-change="pageQuery()" style="border-radius: 0px 4px 4px 0px;">
+						<option value="10">10</option>
+						<option value="20">20</option>
+						<option value="50">50</option>
+						<option value="100">100</option>
+					</select>
+				</div>
+			</div>
+		</div> --> 
+	</div>
+</div>

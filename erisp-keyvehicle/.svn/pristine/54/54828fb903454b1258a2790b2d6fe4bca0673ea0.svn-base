@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 违法信息Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.IllegalInfoMapper">
+	
+	<!-- 查询违法信息 -->
+	<select id="queryIllegal" resultType='com.gkhb.keyvehicle.model.IllegalInfo'>
+		SELECT * FROM KV_ILLEGAL_INFO
+		ORDER BY ILLEGAL_TIME DESC
+	</select>
+	
+	<!-- 根据id查询 -->
+	<select id="queryIllegalInfoById" parameterType="java.lang.String" resultType='com.gkhb.keyvehicle.model.IllegalInfo'>
+		SELECT * FROM KV_ILLEGAL_INFO WHERE ID = #{id,jdbcType=VARCHAR} ORDER BY ILLEGAL_TIME DESC
+	</select>
+	
+	<!-- 高级搜索 -->
+	<select id="searchIllegalInfo" parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData" resultType='com.gkhb.keyvehicle.model.IllegalInfo'>
+		SELECT V.* FROM KV_ILLEGAL_INFO V
+		WHERE V.STATE = 0 
+		<if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND V.PLATE_NUMBER LIKE CONCAT(CONCAT('%', #{queryConditionData.plateNumber}),'%')
+		</if>
+		<if test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND V. ILLEGAL_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND V. ILLEGAL_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if test=" queryConditionData.illegalType != null and queryConditionData.illegalType != '' ">
+			AND V.ILLEGAL_TYPE LIKE CONCAT(CONCAT('%', #{queryConditionData.illegalType}),'%')
+		</if>
+		ORDER BY V.ILLEGAL_TIME DESC
+	</select>
+</mapper>

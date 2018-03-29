@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 历史GPS位置Mapper -->
+<mapper namespace="com.gkhb.keyvehicle.mapper.HistDataMapper">
+
+	<!-- 添加历史GPS位置信息 -->
+	<insert id="addHistData" parameterType="com.gkhb.keyvehicle.model.HistData">
+		INSERT INTO KV_HIST_DATA
+		(
+		ID,
+		SYSTEM_NUMBER,
+		PLATE_NUMBER,
+		WARN_FLAG,
+		STATE,
+		LATITUDE,
+		LONGITUDE,
+		ALTITUDE,
+		SPEED,
+		COURSE,
+		REPORT_TIME,
+		RECEIVE_TIME,
+		ETL_STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{systemNumber},
+		#{plateNumber},
+		#{warnFlag},
+		#{state},
+		#{latitude},
+		#{longitude},
+		#{altitude},
+		#{speed},
+		#{course},
+		#{reportTime},
+		#{receiveTime},
+		#{etlState}
+		);
+	</insert>
+
+	<!-- 查询所有 -->
+	<select id="queryHistData" resultType='com.gkhb.keyvehicle.model.HistData'>
+		select * from KV_HIST_DATA
+	</select>
+
+	<!-- 查询某段时间内某辆车的位置信息MYSQL -->
+	<!-- <select id="queryLocationsByHistData" resultType='com.gkhb.keyvehicle.model.GPSData' 
+		parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData"> SELECT 
+		m.*,v.VEHICLE_TYPE FROM KV_HIST_DATA m,KV_VEHICLE_INFO v WHERE m.ID IS NOT 
+		NULL <if test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber 
+		!= '' "> AND m.PLATE_NUMBER = #{queryConditionData.plateNumber} </if> <if 
+		test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious 
+		!= '' "> <![CDATA[ AND m.REPORT_TIME >= DATE_FORMAT(#{queryConditionData.timePrevious},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> <if test=" queryConditionData.startTime != null and 
+		queryConditionData.startTime != '' "> <![CDATA[ AND m. REPORT_TIME >= DATE_FORMAT(#{queryConditionData.startTime},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> <if test=" queryConditionData.endTime != null and queryConditionData.endTime 
+		!= '' "> <![CDATA[ AND m. REPORT_TIME <= DATE_FORMAT(#{queryConditionData.endTime},'%Y-%m-%d 
+		%H:%i:%s') ]]> </if> AND v.PLATE_NUMBER = m.PLATE_NUMBER ORDER BY m.REPORT_TIME 
+		DESC </select> -->
+
+	<!-- 查询某段时间内某辆车的位置信息ORACLE -->
+	<select id="queryLocationsByHistData" resultType='com.gkhb.keyvehicle.model.GPSData'
+		parameterType="com.gkhb.keyvehicle.model.param.QueryConditionData">
+		SELECT m.*,v.VEHICLE_TYPE
+		FROM KV_HIST_DATA m,KV_VEHICLE_INFO v
+		WHERE
+		m.ID IS NOT NULL
+		<if
+			test=" queryConditionData.plateNumber != null and queryConditionData.plateNumber != '' ">
+			AND m.PLATE_NUMBER = #{queryConditionData.plateNumber}
+		</if>
+		<if
+			test=" queryConditionData.timePrevious != null and queryConditionData.timePrevious != '' ">
+			<![CDATA[ AND m. REPORT_TIME >= to_date(#{queryConditionData.timePrevious},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.startTime != null and queryConditionData.startTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME >= to_date(#{queryConditionData.startTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		<if
+			test=" queryConditionData.endTime != null and queryConditionData.endTime != '' ">
+			<![CDATA[ AND m. REPORT_TIME <= to_date(#{queryConditionData.endTime},'yyyy-mm-dd hh24:mi:ss')  ]]>
+		</if>
+		AND v.PLATE_NUMBER = m.PLATE_NUMBER
+		ORDER BY m.REPORT_TIME ASC
+	</select>
+
+	<!-- 修改 -->
+	<update id="updateHistData" parameterType="com.gkhb.keyvehicle.model.HistData">
+		UPDATE KV_HIST_DATA SET
+		SYSTEM_NUMBER = #{systemNumber},
+		PLATE_NUMBER = #{plateNumber},
+		WARN_FLAG = #{warnFlag},
+		STATE = #{state},
+		LATITUDE = #{latitude},
+		LONGITUDE = #{longitude},
+		ALTITUDE = #{altitude},
+		SPEED = #{speed},
+		COURSE = #{course},
+		REPORT_TIME = #{reportTime},
+		RECEIVE_TIME = #{receiveTime},
+		ETL_STATE = #{etlState}
+		WHERE ID = #{id}
+	</update>
+
+	<!-- 批量添加历史GPS位置 -->
+	<insert id="addHistDataBatch" parameterType="com.gkhb.keyvehicle.model.RealTimeData">
+		INSERT INTO KV_HIST_DATA (
+		ID,
+		SYSTEM_NUMBER,
+		PLATE_NUMBER,
+		WARN_FLAG,
+		STATE,
+		LATITUDE,
+		LONGITUDE,
+		ALTITUDE,
+		SPEED,
+		COURSE,
+		REPORT_TIME,
+		RECEIVE_TIME,
+		ETL_STATE
+		)
+		VALUES
+		(
+		#{id},
+		#{systemNumber},
+		#{plateNumber},
+		#{warnFlag},
+		#{state},
+		#{latitude},
+		#{longitude},
+		#{altitude},
+		#{speed},
+		#{course},
+		#{reportTime},
+		#{receiveTime},
+		#{etlState}
+		)
+		<!-- <foreach item="item" index="index" collection="list" separator="," 
+			> (#{item.id}, #{item.systemNumber}, #{item.plateNumber}, #{item.warnFlag}, 
+			#{item.state}, #{item.latitude}, #{item.longitude}, #{item.altitude}, #{item.speed}, 
+			#{item.course}, #{item.reportTime}, #{item.receiveTime}, #{item.etlState}) 
+			</foreach> -->
+	</insert>
+
+	<!-- 根据清洗状态查询GPS数据 -->
+	<select id="queryHistDataByEtlState" resultType='com.gkhb.keyvehicle.model.HistData'>
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+		*
+		FROM
+		KV_HIST_DATA
+		WHERE
+		ETL_STATE = #{etlState}
+		ORDER BY
+		REPORT_TIME
+		)
+		WHERE
+			<![CDATA[ ROWNUM <= 100 ]]>
+	</select>
+
+	<!-- 根据清洗状态查询GPS数据 -->
+	<select id="queryHistDataForSpeed0" resultType='com.gkhb.keyvehicle.model.HistData'>
+		SELECT
+		*
+		FROM
+		(
+		SELECT
+		*
+		FROM
+		KV_HIST_DATA
+		WHERE
+		SPEED = 0
+		AND PLATE_NUMBER = #{gpsData.plateNumber}
+		<!-- <![CDATA[ AND REPORT_TIME <= to_date(#{gpsData.reportTime},'yyyy-mm-dd 
+			hh24:mi:ss') ]]> -->
+					<![CDATA[ AND REPORT_TIME <= #{gpsData.reportTime} ]]>
+		ORDER BY
+		REPORT_TIME DESC
+		)
+		WHERE
+		ROWNUM = 1
+	</select>
+
+	<!-- 批量更新清理状态为已清理 -->
+	<update id="updateHistDataToEtlState1">
+		UPDATE KV_HIST_DATA SET
+		ETL_STATE = 1
+		WHERE ID IN
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item.id}
+		</foreach>
+	</update>
+
+</mapper>

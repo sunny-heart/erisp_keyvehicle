@@ -1,0 +1,25 @@
+package com.gkhb.keyvehicle.mapper;
+
+import org.springframework.stereotype.Repository;
+
+
+/**
+ *	车辆在线状态
+ *	@author eddy
+ */
+@Repository
+public interface VehicleOnlineStateMapper {
+	
+	/**
+	 * 根据实时表和历史表的数据生成车辆在线状态
+	 */
+	public void addVehicleOnlineState();
+
+	/**
+	 * 清除车辆在线状态
+	 * @return
+	 */
+	public boolean deleteVehicleOnlineState();
+	
+
+}
